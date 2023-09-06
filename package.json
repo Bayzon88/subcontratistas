@@ -1,0 +1,11 @@
+{
+  "name": "firebaseproject",
+  "version": "1.0.0",
+  "description": "firebase project for subcontratistas",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "alvaro beltran",
+  "license": "ISC"
+}
