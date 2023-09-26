@@ -4,19 +4,11 @@ const fs = require("fs");
 const path = require("path");
 var _ = require("lodash");
 
-module.exports = function consolidateExcelFile() {
-    // Reading our test file
-    //TODO: Check if the file is open before starting
+module.exports = function consolidateExcelFile(uploadedFileName) {
+
+    //Variables
     let data = [];
-    let targetDir = path.join(__dirname, "/subcontratistas");
-
-    if (!fs.existsSync(targetDir)) {
-        fs.mkdirSync(targetDir);
-    }
-
     let progress = 1;
-    let directories = fs.readdirSync(targetDir);
-
     let dataColumns = [
         "RUC",
         "EMPRESA",
@@ -37,22 +29,31 @@ module.exports = function consolidateExcelFile() {
         "TIPO DE CONTRATO LABORAL",
     ];
 
-    //*********************************************************** START Main Process ***********************************************************/
+    //TODO: Check if the file is open before starting
+    let targetDir = path.join(__dirname, '/subcontratistas/' + uploadedFileName); //Folder in which all the files have been extracted
+    let directories = fs.readdirSync(targetDir); //Folders inside the target Directory (one for each subcontratista)
 
+    //Create the folder 
+    if (!fs.existsSync(targetDir)) {
+        fs.mkdirSync(targetDir);
+    }
+
+
+    //*********************************************************** START Main Process ***********************************************************/
     //Loop through every file in the directory, read and consolidate data into an array of objects
     directories.forEach((directory) => {
         logCurrentProgress();
         //Create path to each file inside each directory
         //! Use when the file is inside a folder
-        // let targetFile = path.join(targetDir, `/${directory}`);
-        // let dir = fs.readdirSync(targetFile);
+        let targetFile = path.join(targetDir, `/${directory}`);
+        let dir = fs.readdirSync(targetFile);
 
         //Read data inside the file
         try {
             //Push data into array
-            // data.push(readFileToJson(dir, directory)); //! When file is inside a folder
 
-            const tempJson = readFileToJson(directory, directory);
+            // const tempJson = readFileToJson(directory, directory); //! When file is not inside a folder
+            const tempJson = readFileToJson(dir, directory);//! When file is inside a folder
 
             //Loop through the array and JSON, eliminate all unnecesary columns
             tempJson.forEach((jsonObject) =>
@@ -67,6 +68,7 @@ module.exports = function consolidateExcelFile() {
             let filteredData = data.filter((trabajador, index) => data.indexOf(trabajador) === index);
         } catch (exception) {
             console.log("Error with: " + directory);
+            console.error(exception);
         }
 
         progress++;
@@ -93,7 +95,7 @@ module.exports = function consolidateExcelFile() {
     /**
      * @param Workbook
      * @param String
-     */
+    */
     //Write in file
     reader.writeFile(newBook, "ReporteConsolidado.xlsx");
     console.log("Proceso terminado con exito");
@@ -109,8 +111,8 @@ module.exports = function consolidateExcelFile() {
      * @returns
      */
     function readFileToJson(fileName, fileDirectory) {
-        // const file = reader.readFile(`./subcontratistas/${fileDirectory}/${fileName}`); //! When is inside a folder
-        const file = reader.readFile(`./subcontratistas/${fileName}`); //When is not inside a folder
+        const file = reader.readFile(`./subcontratistas/${uploadedFileName}/${fileDirectory}/${fileName}`); //! When is inside a folder
+        // const file = reader.readFile(`./subcontratistas/${fileName}`); //! When is not inside a folder
 
         const sheets = file.SheetNames;
         //Search for "Cuadro" sheet
@@ -247,12 +249,21 @@ module.exports = function consolidateExcelFile() {
     }
     //********************************************************* END Convert File to json *********************************************************/
 
+
+
+
+
     //********************************************************** START Delete all files *********************************************************/
     function deleteFilesFromDirectory() {
         //Cleanup function to remove all files from the directory once the consolidation process is finished
-        for (const file of fs.readdirSync(targetDir)) {
-            fs.unlinkSync(path.join(__dirname + "/" + process.env.DATAFOLDER_URL, file));
+        try {
+            fs.rm(targetDir, { recursive: true }, () => console.log("All files deleted"))
         }
+        catch (exception) {
+            console.error("Error removing files from folder")
+
+        }
+
     }
     //*********************************************************** END Delete all files **********************************************************/
 
@@ -268,29 +279,4 @@ module.exports = function consolidateExcelFile() {
     }
 };
 
-//********************************  JSON STRUCTURE **************************************/
 
-// RUC: 20551135137,
-// EMPRESA: 'JLF SERVICIOS GENERALES SAC',
-// 'CONTRATISTA PRNCIPAL': 'JLF SERVICIOS GENERALES SAC',
-// 'Nro. DNI / CE': '41247950',
-// 'APELLIDOS Y NOMBRES': 'VASQUEZ VASQUEZ JORGE HERALDO',
-// 'FECHA NACIMIENTO': 29913,
-// 'TIPO TRABAJADOR': 2,
-// 'TITULO DE PUESTO/CARGO': 'CAPATAZ',
-// 'NOMBRE DE OBRA DONDE ESTA ASIGNADO DURANTE EL MES REPORTADO': 'ESTACION 8 - ESTACION 9',
-// 'DOMICILIO DE TRABAJADOR': 'AV. LOS PROCERES MZ. J LT. 21 CAMPOY',
-// 'DISTRITO SEGÚN DNI': 'San Juan de Lurigancho',
-// GENERO: 'MASCULINO',
-// NACIONALIDAD: 'PERUANA',
-// 'FECHA INICIO DE LABORES EN OBRA': 45014,
-// ESTADO: 1,
-// 'TIPO DE CONTRATO LABORAL': 4,
-// Contratistas: 0.06666666666666667,
-// Edad: 41,
-// 'Rango Edades': '41 - 49',
-// 'Validar Edad': 'Ok',
-// 'Zona de Influencia': 'No',
-// 'Validar Genero': 'OK',
-// ValidarDNI: 'OK',
-// Trabajador: 1

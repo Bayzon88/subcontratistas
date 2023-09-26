@@ -1,13 +1,13 @@
 if (process.env.NODE_ENV !== "production") {
     require("dotenv").config(); //Load the .env file
 }
-
+const path = require('path');
 const express = require("express");
 const AdmZip = require("adm-zip");
 const fs = require("fs");
 const fileUpload = require("express-fileupload");
 
-const consolidateExcelFile = require("./excel")
+const consolidateExcelFile = require("./excelConsolidation")
 const app = express();
 const port = process.env.PORT || 3000;
 const uploadDestination = process.env.DATAFOLDER_URL || "subcontratistas/";
@@ -45,12 +45,14 @@ app.post("/uploadfiles", (req, res) => {
 
             // Extract the contents of the zip file
             zip.extractAllTo(uploadDestination, /* overwrite */ true);
-
+            console.log(uploadDestination)
             // Delete the uploaded zip file
             fs.unlinkSync(uploadedFilePath);
 
-            consolidateExcelFile()
-            res.send("Files extracted and uploaded successfully!");
+            //Path of extracted folder 
+            const pathExtractedFolder = fs.readdirSync(path.join(__dirname, uploadDestination));
+            consolidateExcelFile(pathExtractedFolder);
+            res.sendFile(__dirname + "/ReporteConsolidado.xlsx")
         } catch (err) {
             console.error(err);
             res.status(500).send("File processing failed");
