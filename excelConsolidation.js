@@ -4,11 +4,12 @@ const fs = require("fs");
 const path = require("path");
 var _ = require("lodash");
 
-module.exports = function consolidateExcelFile(uploadedFileName) {
+let progress = 1;
+function consolidateExcelFile(uploadedFileName) {
 
     //Variables
     let data = [];
-    let progress = 1;
+
     let dataColumns = [
         "RUC",
         "EMPRESA",
@@ -33,13 +34,14 @@ module.exports = function consolidateExcelFile(uploadedFileName) {
     let targetDir = path.join(__dirname, '/subcontratistas/' + uploadedFileName); //Folder in which all the files have been extracted
     let directories = fs.readdirSync(targetDir); //Folders inside the target Directory (one for each subcontratista)
 
+    //*********************************************************** START Main Process ***********************************************************/
+
     //Create the folder 
     if (!fs.existsSync(targetDir)) {
         fs.mkdirSync(targetDir);
     }
 
 
-    //*********************************************************** START Main Process ***********************************************************/
     //Loop through every file in the directory, read and consolidate data into an array of objects
     directories.forEach((directory) => {
         logCurrentProgress();
@@ -277,6 +279,12 @@ module.exports = function consolidateExcelFile(uploadedFileName) {
             })}`
         );
     }
+
+
 };
 
+function getCurrentProgress() {
+    return { progress: progress }
+}
 
+module.exports = { getCurrentProgress: getCurrentProgress, consolidateExcelFile: consolidateExcelFile }; //

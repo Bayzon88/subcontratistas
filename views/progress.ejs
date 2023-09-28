@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Progress Bar</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <h1>Progress Bar</h1>
+    <div class="progress-container">
+      <div class="progress-bar" id="progress-bar"></div>
+      <div class="progress-text" id="progress-text">0%</div>
+    </div>
+    <script>
+      const progressBar = document.getElementById("progress-bar");
+      const progressText = document.getElementById("progress-text");
+      const eventSource = new EventSource("/progress");
+
+      eventSource.onmessage = (event) => {
+        const progress = parseFloat(event.data);
+        progressBar.style.width = `${progress}%`;
+        progressText.innerText = `${progress.toFixed(2)}%`;
+      };
+    </script>
+  </body>
+</html>
