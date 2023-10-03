@@ -44,29 +44,43 @@ submitFiles.addEventListener("click", (event) => {
     axios
         .post("/uploadfiles", formData)
         .then((response) => {
+
+            //Handle Process response
+            if (response.status == 200) {
+                // Button to download the file.
+                const downloadBtn = document.createElement("button");
+
+                downloadBtn.textContent = "Descargar Archivo";
+                downloadBtn.addEventListener('click', () => downloadFile())
+                document.body.appendChild(downloadBtn);
+                console.log(downloadBtn)
+            }
+
             // Handle the download response
-            console.log("File download initiated");
 
-            // BLOB Object with the response from the server (File)
-            const blob = new Blob([response.data], { type: "application/octet-stream" });
 
-            // Create a URL for the Blob object
-            const url = window.URL.createObjectURL(blob);
+            // console.log("File download initiated");
+            // console.log(response);
+            // // BLOB Object with the response from the server (File)
+            // const blob = new Blob([response.data], { type: "application/octet-stream" });
+            // console.log(blob)
+            // // Create a URL for the Blob object
+            // const url = window.URL.createObjectURL(blob);
+            // console.log(url)
+            // // Create Anchor element to prompt the user to download the file
+            // const a = document.createElement("a");
+            // // a.style.display = "none";
+            // a.textContent = "HOLA";
+            // a.href = url;
 
-            // Create Anchor element to prompt the user to download the file
-            const a = document.createElement("a");
-            // a.style.display = "none";
-            a.textContent = "HOLA";
-            a.href = url;
+            // // Set the filename for the download
+            // a.download = "ReporteConsolidado";
 
-            // Set the filename for the download
-            a.download = "ReporteConsolidado.xlsx";
+            // // Add the anchor element to the document
+            // document.body.appendChild(a);
 
-            // Add the anchor element to the document
-            document.body.appendChild(a);
+            // a.addEventListener('click', downloadFile())
 
-            // Revoke the Blob URL to free up resources
-            window.URL.revokeObjectURL(url);
         })
         .catch((error) => {
             // Handle any errors that occur during download
@@ -75,6 +89,26 @@ submitFiles.addEventListener("click", (event) => {
 });
 /**************************************************************************************/
 
+async function downloadFile(url) {
+    console.log("downloading file")
+    axios.get("/downloadFile", { responseType: 'blob' }).then(response => {
+        const blob = new Blob([response.data], { type: response.headers['content-type'] })
+        const downloadURL = window.URL.createObjectURL(blob)
+        const downloadElement = document.createElement("a")
+        downloadElement.href = downloadURL
+        downloadElement.download = "Reporte Consolidado.xlsx"
+        downloadElement.click()
+
+
+
+        // Revoke the Blob URL to free up resources (optional)
+        window.URL.revokeObjectURL(url);
+    })
+
+
+    // Revoke the Blob URL after download is initiated
+    // window.URL.revokeObjectURL(url);
+}
 // Prevent the default behavior of the browser when files are dropped.
 dropZone.addEventListener("dragover", (e) => {
     e.preventDefault();

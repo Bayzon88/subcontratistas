@@ -6,7 +6,7 @@ var _ = require("lodash");
 
 let progress = 1;
 function consolidateExcelFile(uploadedFileName) {
-
+    progress = 0;
     //Variables
     let data = [];
 

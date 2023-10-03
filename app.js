@@ -85,22 +85,7 @@ app.post("/uploadfiles", async (req, res) => {
             //Path of extracted folder 
             const pathExtractedFolder = fs.readdirSync(path.join(__dirname, uploadDestination));
             consolidateExcelFile(pathExtractedFolder);
-
-
-
-            //? Send file to user after it has been processed
-            const filePath = path.join(__dirname, "ReporteConsolidado.xlsx");
-
-            // Set appropriate headers for file download
-            res.setHeader("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet");
-            res.setHeader("Content-Disposition", `attachment; filename="ReporteConsolidado.xlsx"`);
-
-            // Stream the file to the response
-            const fileStream = fs.createReadStream(filePath);
-            fileStream.pipe(res);
-
-
-            // res.status(200).end()
+            res.status(200).end()
         } catch (err) {
             console.error(err);
             //Remove all files from the folder 
@@ -109,32 +94,10 @@ app.post("/uploadfiles", async (req, res) => {
     });
 });
 
-
-
-// app.get("/progress", (req, res) => {
-
-//     res.setHeader('Content-Type', 'text/event-stream');
-//     res.setHeader('Cache-Control', 'no-cache');
-//     res.setHeader('Connection', 'keep-alive');
-
-//     let progress = 0;
-//     const maxProgress = 100;
-
-//     const intervalId = setInterval(() => {
-//         progress += 5; // Simulate progress (increments by 5%)
-//         if (progress >= maxProgress) {
-//             clearInterval(intervalId);
-//             res.write('data: 100\n\n');
-//             res.end();
-//         } else {
-//             res.write(`data: ${progress}\n\n`);
-//         }
-//     }, 1000);
-// })
-
-
-
-
+app.get("/downloadFile", (req, res) => {
+    console.log("downloading file")
+    res.sendFile(path.join(__dirname, "ReporteConsolidado.xlsx"))
+})
 
 
 app.listen(port, () => {
