@@ -36,11 +36,16 @@
             id="myfiles"
             name="zipFile"
             type="file"
-            href="#caca"
           />
         </div>
         <div class="w-100 d-flex justify-content-end mt-3">
-          <input type="submit" value="Procesar" accept=".zip" class="btn btn-success w-100" />
+          <input
+            id="submit-files"
+            type="submit"
+            value="Procesar"
+            accept=".zip"
+            class="btn btn-success w-100"
+          />
         </div>
       </div>
     </form>
@@ -55,23 +60,12 @@
       integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+"
       crossorigin="anonymous"
     ></script>
-
-    <script>
-      const fileInput = document.getElementById("myfiles");
-      const label = document.querySelector(".label-text");
-      const dropZone = document.querySelector("#drop-area");
-
-      // Prevent the default behavior of the browser when files are dropped.
-      dropZone.addEventListener("dragover", (e) => {
-        e.preventDefault();
-      });
-
-      // Handle file drop event.
-      dropZone.addEventListener("drop", (e) => {
-        e.preventDefault();
-        label.textContent = "Archivo seleccionado: " + e.dataTransfer.files[0].name;
-        fileInput.files = e.dataTransfer.files;
-      });
-    </script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.5.1/axios.min.js"
+      integrity="sha512-emSwuKiMyYedRwflbZB2ghzX8Cw8fmNVgZ6yQNNXXagFzFOaQmbvQ1vmDkddHjm5AITcBIZfC7k4ShQSjgPAmQ=="
+      crossorigin="anonymous"
+      referrerpolicy="no-referrer"
+    ></script>
+    <script src="js/index.js"></script>
   </body>
 </html>

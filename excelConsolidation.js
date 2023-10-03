@@ -270,6 +270,7 @@ function consolidateExcelFile(uploadedFileName) {
     //*********************************************************** END Delete all files **********************************************************/
 
     function logCurrentProgress() {
+        // if (progress >= directories.length) progress = 0
         //Log Progress
         console.clear();
         console.log(
