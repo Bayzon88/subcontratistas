@@ -100,7 +100,7 @@ app.post("/uploadfiles", async (req, res) => {
             fileStream.pipe(res);
 
 
-            res.status(200).end()
+            // res.status(200).end()
         } catch (err) {
             console.error(err);
             //Remove all files from the folder 
