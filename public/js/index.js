@@ -40,6 +40,8 @@ submitFiles.addEventListener("click", (event) => {
     const selectedFile = fileInput.files[0];
     formData.append("zipFile", selectedFile);
 
+    //Disable button to prevent a retrigger of the button
+    submitFiles.disabled = true
     // Send a POST request to the /uploadfiles endpoint with the FormData
     axios
         .post("/uploadfiles", formData)
@@ -53,33 +55,11 @@ submitFiles.addEventListener("click", (event) => {
                 downloadBtn.textContent = "Descargar Archivo";
                 downloadBtn.addEventListener('click', () => downloadFile())
                 document.body.appendChild(downloadBtn);
-                console.log(downloadBtn)
+
+                
             }
 
-            // Handle the download response
 
-
-            // console.log("File download initiated");
-            // console.log(response);
-            // // BLOB Object with the response from the server (File)
-            // const blob = new Blob([response.data], { type: "application/octet-stream" });
-            // console.log(blob)
-            // // Create a URL for the Blob object
-            // const url = window.URL.createObjectURL(blob);
-            // console.log(url)
-            // // Create Anchor element to prompt the user to download the file
-            // const a = document.createElement("a");
-            // // a.style.display = "none";
-            // a.textContent = "HOLA";
-            // a.href = url;
-
-            // // Set the filename for the download
-            // a.download = "ReporteConsolidado";
-
-            // // Add the anchor element to the document
-            // document.body.appendChild(a);
-
-            // a.addEventListener('click', downloadFile())
 
         })
         .catch((error) => {
@@ -89,7 +69,7 @@ submitFiles.addEventListener("click", (event) => {
 });
 /**************************************************************************************/
 
-async function downloadFile(url) {
+async function downloadFile() {
     console.log("downloading file")
     axios.get("/downloadFile", { responseType: 'blob' }).then(response => {
         const blob = new Blob([response.data], { type: response.headers['content-type'] })
@@ -101,8 +81,11 @@ async function downloadFile(url) {
 
 
 
-        // Revoke the Blob URL to free up resources (optional)
-        window.URL.revokeObjectURL(url);
+        // Revoke the Blob URL to free up resources 
+        window.URL.revokeObjectURL(downloadURL);
+
+        //Re-enable procesar button after 
+        submitFiles.disabled = false;
     })
 
 

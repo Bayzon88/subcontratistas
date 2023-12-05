@@ -32,6 +32,7 @@ function consolidateExcelFile(uploadedFileName) {
 
     //TODO: Check if the file is open before starting
     let targetDir = path.join(__dirname, '/subcontratistas/' + uploadedFileName); //Folder in which all the files have been extracted
+    console.log(targetDir)
     let directories = fs.readdirSync(targetDir); //Folders inside the target Directory (one for each subcontratista)
 
     //*********************************************************** START Main Process ***********************************************************/
