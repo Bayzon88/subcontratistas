@@ -28,6 +28,7 @@ function consolidateExcelFile(uploadedFileName) {
         "FECHA INICIO DE LABORES EN OBRA",
         "ESTADO",
         "TIPO DE CONTRATO LABORAL",
+        "HPT"
     ];
 
     //TODO: Check if the file is open before starting
