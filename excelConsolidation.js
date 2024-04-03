@@ -33,7 +33,7 @@ function consolidateExcelFile(uploadedFileName) {
 
     //TODO: Check if the file is open before starting
     let targetDir = path.join(__dirname, '/subcontratistas/' + uploadedFileName); //Folder in which all the files have been extracted
-    console.log(targetDir)
+
     let directories = fs.readdirSync(targetDir); //Folders inside the target Directory (one for each subcontratista)
 
     //*********************************************************** START Main Process ***********************************************************/
@@ -51,7 +51,7 @@ function consolidateExcelFile(uploadedFileName) {
         //! Use when the file is inside a folder
         let targetFile = path.join(targetDir, `/${directory}`);
         let dir = fs.readdirSync(targetFile);
-
+        console.log(dir)
         //Read data inside the file
         try {
             //Push data into array
@@ -82,6 +82,7 @@ function consolidateExcelFile(uploadedFileName) {
 
     //Combine all JSON objects into 1 array instead of array of arrays with JSON inside
     const combinedArray = [].concat(...data);
+
 
     //Remove duplicated values
     let setWithNoDuplicates = new Set(combinedArray.map(JSON.stringify)); //Create a new Set without duplicates
@@ -115,17 +116,19 @@ function consolidateExcelFile(uploadedFileName) {
      * @returns
      */
     function readFileToJson(fileName, fileDirectory) {
+
         const file = reader.readFile(`./subcontratistas/${uploadedFileName}/${fileDirectory}/${fileName}`); //! When is inside a folder
         // const file = reader.readFile(`./subcontratistas/${fileName}`); //! When is not inside a folder
 
         const sheets = file.SheetNames;
         //Search for "Cuadro" sheet
-        const temp = reader.utils.sheet_to_json(
+        const personalSubcontrata = reader.utils.sheet_to_json(
             file.Sheets[file.SheetNames[file.SheetNames.indexOf("Cuadro")]]
         );
 
+
         //? To review which Subcontratista is not in compliance with the file structure
-        temp.forEach((sheetToChange, index, arr) => {
+        personalSubcontrata.forEach((sheetToChange, index, arr) => {
             arr[index] = {
                 ...sheetToChange,
                 errorEnArchivo: `${fileName}`,
@@ -135,8 +138,6 @@ function consolidateExcelFile(uploadedFileName) {
             };
         });
 
-        //Filter empty rows
-        let personalSubcontrata = temp.filter((contratista) => contratista.Contratistas != 0);
 
         //TODO: Filter validation columns, keep only valid data
 

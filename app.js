@@ -84,6 +84,7 @@ app.post("/uploadfiles", async (req, res) => {
 
             //Path of extracted folder 
             const pathExtractedFolder = fs.readdirSync(path.join(__dirname, uploadDestination));
+            console.log(pathExtractedFolder);
             consolidateExcelFile(pathExtractedFolder);
             res.status(200).end()
         } catch (err) {
