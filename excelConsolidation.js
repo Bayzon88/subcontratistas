@@ -5,31 +5,32 @@ const path = require("path");
 var _ = require("lodash");
 
 let progress = 1;
+let dataColumns = [
+    "RUC",
+    "EMPRESA",
+    "CONTRATISTA PRNCIPAL",
+    "Nro. DNI / CE",
+    "APELLIDOS Y NOMBRES",
+    "FECHA NACIMIENTO",
+    "TIPO TRABAJADOR",
+    "TITULO DE PUESTO/CARGO",
+    "NOMBRE DE OBRA DONDE ESTA ASIGNADO DURANTE EL MES REPORTADO",
+    "DOMICILIO DE TRABAJADOR",
+    "DISTRITO SEGÚN DNI",
+    "GENERO",
+    "FECHA CESE/BAJA",
+    "NACIONALIDAD",
+    "FECHA INICIO DE LABORES EN OBRA",
+    "ESTADO",
+    "TIPO DE CONTRATO LABORAL",
+    "HPT"
+];
 function consolidateExcelFile(uploadedFileName) {
     progress = 0;
     //Variables
     let data = [];
 
-    let dataColumns = [
-        "RUC",
-        "EMPRESA",
-        "CONTRATISTA PRNCIPAL",
-        "Nro. DNI / CE",
-        "APELLIDOS Y NOMBRES",
-        "FECHA NACIMIENTO",
-        "TIPO TRABAJADOR",
-        "TITULO DE PUESTO/CARGO",
-        "NOMBRE DE OBRA DONDE ESTA ASIGNADO DURANTE EL MES REPORTADO",
-        "DOMICILIO DE TRABAJADOR",
-        "DISTRITO SEGÚN DNI",
-        "GENERO",
-        "FECHA CESE/BAJA",
-        "NACIONALIDAD",
-        "FECHA INICIO DE LABORES EN OBRA",
-        "ESTADO",
-        "TIPO DE CONTRATO LABORAL",
-        "HPT"
-    ];
+
 
     //TODO: Check if the file is open before starting
     let targetDir = path.join(__dirname, '/subcontratistas/' + uploadedFileName); //Folder in which all the files have been extracted
@@ -51,7 +52,7 @@ function consolidateExcelFile(uploadedFileName) {
         //! Use when the file is inside a folder
         let targetFile = path.join(targetDir, `/${directory}`);
         let dir = fs.readdirSync(targetFile);
-        console.log(dir)
+
         //Read data inside the file
         try {
             //Push data into array
@@ -93,9 +94,14 @@ function consolidateExcelFile(uploadedFileName) {
 
     // Create a new Excel Object
     let newBook = reader.utils.book_new();
-    let newWS = reader.utils.json_to_sheet(combinedArrayWithoutDuplicates);
+    const orderedDataWithoutDuplicates = orderHeadersAndData(combinedArrayWithoutDuplicates)
+    let newWS = reader.utils.json_to_sheet(orderedDataWithoutDuplicates);
 
     reader.utils.book_append_sheet(newBook, newWS, "Cuadro");
+
+    /**
+     * Order 
+     */
 
     /**
      * @param Workbook
@@ -139,7 +145,7 @@ function consolidateExcelFile(uploadedFileName) {
         });
 
 
-        //TODO: Filter validation columns, keep only valid data
+
 
         personalSubcontrata.forEach((trabajador) => {
             if (typeof trabajador["TIPO TRABAJADOR"] == "string") {
@@ -286,6 +292,24 @@ function consolidateExcelFile(uploadedFileName) {
 
 
 };
+
+/**
+ * @param {String} combinedArrayWithoutDuplicates
+ * @returns {Object}
+ */
+function orderHeadersAndData(combinedArrayWithoutDuplicates) {
+    //Method to organize the resulting data in way that resembles the structure of the table in the excel file
+    const orderedHeaderAndData = []
+    combinedArrayWithoutDuplicates.forEach((row, index) => {
+        const orderedObject = {}
+        dataColumns.forEach(column => {
+            orderedObject[column] = row[column]
+        })
+        orderedHeaderAndData.push(orderedObject)
+    })
+    // console.log(orderedHeaderAndData)
+    return orderedHeaderAndData
+}
 
 function getCurrentProgress() {
     return { progress: progress }
