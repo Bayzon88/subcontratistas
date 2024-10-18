@@ -28,5 +28,5 @@ jobs:
       - run: npm ci
       - run: npm run build --if-present
 
-      - run: pm2 describe subcontratistas || pm2 start path/to/your/app.js --name subcontratistas
+      - run: pm2 describe subcontratistas || pm2 start ~/Desktop/subcontratistas/app.js --name subcontratistas
       - run: pm2 restart subcontratistas
