@@ -25,7 +25,7 @@ const uploadDestination = process.env.DATAFOLDER_URL || "subcontratistas";
 //TODO: Rework UI 
 
 //Serve all public files
-// app.use(express.static(path.join(__dirname, "../", '/public')));
+app.use(express.static(path.join(__dirname, "../", '/public')));
 
 
 
