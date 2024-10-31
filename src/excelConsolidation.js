@@ -34,8 +34,8 @@ function consolidateExcelFile(uploadedFileName) {
 
     //TODO: Check if the file is open before starting
     let targetDir = path.join(__dirname, '/subcontratistas/' + uploadedFileName); //Folder in which all the files have been extracted
-
     let directories = fs.readdirSync(targetDir); //Folders inside the target Directory (one for each subcontratista)
+    console.log(directories)
 
     //*********************************************************** START Main Process ***********************************************************/
 
@@ -123,7 +123,7 @@ function consolidateExcelFile(uploadedFileName) {
      */
     function readFileToJson(fileName, fileDirectory) {
 
-        const file = reader.readFile(`./subcontratistas/${uploadedFileName}/${fileDirectory}/${fileName}`); //! When is inside a folder
+        const file = reader.readFile(`./src/subcontratistas/${uploadedFileName}/${fileDirectory}/${fileName}`); //! When is inside a folder
         // const file = reader.readFile(`./subcontratistas/${fileName}`); //! When is not inside a folder
 
         const sheets = file.SheetNames;

@@ -25,7 +25,7 @@ const uploadDestination = process.env.DATAFOLDER_URL || "subcontratistas";
 //TODO: Rework UI 
 
 //Serve all public files
-app.use(express.static(path.join(__dirname, '/public')));
+app.use(express.static(path.join(__dirname, "../", '/public')));
 
 
 
@@ -43,6 +43,7 @@ app.get('/ejs', (req, res) => {
 
 
 if (!fs.existsSync(path.join(__dirname, uploadDestination))) {
+
     fs.mkdirSync(path.join(__dirname, uploadDestination), { recursive: true });
 }
 
@@ -77,20 +78,21 @@ app.post("/uploadfiles", async (req, res) => {
             const zip = new AdmZip(uploadedFilePath);
 
             // Extract the contents of the zip file
-            zip.extractAllTo(uploadDestination, /* overwrite */ true);
+            console.log(uploadDestination, "UPLOADDESTINATION")
+            zip.extractAllTo("./src/subcontratistas", /* overwrite */ true);
 
             // Delete the uploaded zip file
             fs.unlinkSync(uploadedFilePath);
 
             //Path of extracted folder 
             const pathExtractedFolder = fs.readdirSync(path.join(__dirname, uploadDestination));
-            console.log(pathExtractedFolder);
+
             consolidateExcelFile(pathExtractedFolder);
             res.status(200).end()
         } catch (err) {
             console.error(err);
             //Remove all files from the folder 
-            fs.rm(path.join(__dirname, uploadDestination), { recursive: true }, () => res.status(500).send("File processing failed"))
+            // fs.rm(path.join(__dirname, uploadDestination), { recursive: true }, () => res.status(500).send("File processing failed"))
         }
     });
 });
