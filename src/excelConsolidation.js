@@ -109,7 +109,8 @@ function consolidateExcelFile(uploadedFileName) {
      * @param String
     */
     //Write in file
-    reader.writeFile(newBook, "./src/ReporteConsolidado.xlsx");
+    reader.writeFile(newBook, path.join(__dirname, "ReporteConsolidado.xlsx"))
+
 
     //Generate month's report 
     /**
@@ -133,7 +134,7 @@ function consolidateExcelFile(uploadedFileName) {
      */
     function readFileToJson(fileName, fileDirectory) {
 
-        const file = reader.readFile(`./src/subcontratistas/${uploadedFileName}/${fileDirectory}/${fileName}`); //! When is inside a folder
+        const file = reader.readFile(path.join(__dirname, "subcontratistas", `${uploadedFileName}/${fileDirectory}/${fileName}`)); //! When is inside a folder
         // const file = reader.readFile(`./subcontratistas/${fileName}`); //! When is not inside a folder
 
         const sheets = file.SheetNames;

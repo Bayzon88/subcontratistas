@@ -6,7 +6,7 @@ async function writeDataToWorksheet(templatePath) {
 
     try {
         //Read from Reporte Consolidado File
-        const reporteConsolidado = await XlsxPopulate.fromFileAsync("./src/ReporteConsolidado.xlsx")
+        const reporteConsolidado = await XlsxPopulate.fromFileAsync(path.join(__dirname, "ReporteConsolidado.xlsx"))
 
         //Get all the data from the Reporte consolidado file
         const dataPath = reporteConsolidado.sheet("Cuadro").usedRange().value()
@@ -55,7 +55,7 @@ async function writeDataToWorksheet(templatePath) {
         })
 
         // Save the workbook
-        const reportPatAndName = `./src/reportes/Reporte_Subcontratistas${getMonthAndYear()}.xlsx`
+        const reportPatAndName = path.join(__dirname, `reportes/Reporte_Subcontratistas${getMonthAndYear()}.xlsx`)
         await workbook.toFileAsync(reportPatAndName);
         console.log("Data written successfully to worksheet 'data'.");
 
