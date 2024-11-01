@@ -117,7 +117,7 @@ function consolidateExcelFile(uploadedFileName) {
      * @param String templatePath
      * @param String dataPath
      */
-    writeDataToWorksheet("./src/template.xlsx")
+    writeDataToWorksheet("template.xlsx")
     // writeDataToWorksheet("./template.xlsx", "./ReporteConsolidad.xlsx")
 
     console.log("Proceso terminado con exito");

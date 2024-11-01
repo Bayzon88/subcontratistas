@@ -1,5 +1,5 @@
 const XlsxPopulate = require('xlsx-populate');
-
+const path = require('path');
 async function writeDataToWorksheet(templatePath) {
 
 
@@ -16,7 +16,7 @@ async function writeDataToWorksheet(templatePath) {
 
 
         // Load the existing workbook
-        const workbook = await XlsxPopulate.fromFileAsync(templatePath);
+        const workbook = await XlsxPopulate.fromFileAsync(path.join(__dirname, templatePath));
 
         // Access the worksheet named 'data'
         const worksheet = workbook.sheet('Cuadro');
