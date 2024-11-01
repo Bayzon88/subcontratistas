@@ -56,7 +56,7 @@ submitFiles.addEventListener("click", (event) => {
                 downloadBtn.addEventListener('click', () => downloadFile())
                 document.body.appendChild(downloadBtn);
 
-                
+
             }
 
 
@@ -76,7 +76,8 @@ async function downloadFile() {
         const downloadURL = window.URL.createObjectURL(blob)
         const downloadElement = document.createElement("a")
         downloadElement.href = downloadURL
-        downloadElement.download = "Reporte Consolidado.xlsx"
+        console.log(downloadURL)
+        downloadElement.download = `Reporte_Subcontratistas${getMonthAndYear()}.xlsx`
         downloadElement.click()
 
 
@@ -92,6 +93,15 @@ async function downloadFile() {
     // Revoke the Blob URL after download is initiated
     // window.URL.revokeObjectURL(url);
 }
+
+const getMonthAndYear = () => {
+    const date = new Date();  // 2009-11-10
+    const month = date.toLocaleString('es-ES', { month: 'long' }).toUpperCase();
+
+    const year = date.getFullYear()
+    return `_${month}_${year}`;
+}
+
 // Prevent the default behavior of the browser when files are dropped.
 dropZone.addEventListener("dragover", (e) => {
     e.preventDefault();

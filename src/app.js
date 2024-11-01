@@ -88,6 +88,7 @@ app.post("/uploadfiles", async (req, res) => {
             const pathExtractedFolder = fs.readdirSync(path.join(__dirname, uploadDestination));
 
             consolidateExcelFile(pathExtractedFolder);
+
             res.status(200).end()
         } catch (err) {
             console.error(err);
@@ -99,7 +100,31 @@ app.post("/uploadfiles", async (req, res) => {
 
 app.get("/downloadFile", (req, res) => {
     console.log("downloading file")
-    res.sendFile(path.join(__dirname, "ReporteConsolidado.xlsx"))
+
+    const directoryPath = path.join(__dirname, "reportes");
+
+    let files = fs.readdirSync(directoryPath);
+
+    // Map files to an array of objects with stats
+    let filesWithStats = files.map((file) => {
+        let filePath = path.join(directoryPath, file);
+        let stats = fs.statSync(filePath);
+        return {
+            name: file,
+            ctime: stats.ctime, // Creation time
+            // You can also use stats.mtime for modification time
+        };
+    });
+
+    // Sort files by creation time
+    filesWithStats.sort((a, b) => a.ctime + b.ctime);
+
+    // Extract the sorted file names
+    let sortedFiles = filesWithStats.map((file) => file.name);
+
+
+
+    res.sendFile(path.join(__dirname, "reportes", sortedFiles[0]))
 })
 
 

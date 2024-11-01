@@ -109,14 +109,14 @@ function consolidateExcelFile(uploadedFileName) {
      * @param String
     */
     //Write in file
-    reader.writeFile(newBook, "ReporteConsolidado.xlsx");
+    reader.writeFile(newBook, "./src/ReporteConsolidado.xlsx");
 
     //Generate month's report 
     /**
      * @param String templatePath
      * @param String dataPath
      */
-    // writeDataToWorksheet("./template.xlsx", combinedArrayWithoutDuplicates)
+    writeDataToWorksheet("./src/template.xlsx")
     // writeDataToWorksheet("./template.xlsx", "./ReporteConsolidad.xlsx")
 
     console.log("Proceso terminado con exito");
@@ -263,6 +263,11 @@ function consolidateExcelFile(uploadedFileName) {
                         trabajador.ESTADO = parseInt(trabajador.ESTADO);
                         break;
                 }
+            }
+
+            //Edge cases for fecha de cese
+            if (trabajador['FECHA CESE/BAJA'] == undefined) {
+                trabajador['FECHA CESE/BAJA'] = 0;
             }
         });
 

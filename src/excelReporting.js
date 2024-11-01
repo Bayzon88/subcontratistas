@@ -1,11 +1,22 @@
 const XlsxPopulate = require('xlsx-populate');
 
-async function writeDataToWorksheet(templatePath, dataPath) {
-    console.table(dataPath[0])
+async function writeDataToWorksheet(templatePath) {
+
+
 
     try {
+        //Read from Reporte Consolidado File
+        const reporteConsolidado = await XlsxPopulate.fromFileAsync("./src/ReporteConsolidado.xlsx")
+
+        //Get all the data from the Reporte consolidado file
+        const dataPath = reporteConsolidado.sheet("Cuadro").usedRange().value()
+
+        //Remove the headers 
+        dataPath.shift()
+
+
         // Load the existing workbook
-        const workbook = await XlsxPopulate.fromFileAsync(workbookPath);
+        const workbook = await XlsxPopulate.fromFileAsync(templatePath);
 
         // Access the worksheet named 'data'
         const worksheet = workbook.sheet('Cuadro');
@@ -21,6 +32,7 @@ async function writeDataToWorksheet(templatePath, dataPath) {
         //Columns
         const lastColumn = 18
 
+
         //DELETE ALL DATA 
         for (let row = startRow; row < lastRow; row++) {
             for (let column = 1; column <= lastColumn; column++) {
@@ -29,11 +41,21 @@ async function writeDataToWorksheet(templatePath, dataPath) {
             }
         }
 
+        //ADD ALL DATA TO THE WORKBOOK
+        dataPath.forEach((row, index) => {
+            let column = 0
+            for (let data in row) {
 
+                worksheet.row(index + 2).cell(column + 1).value(row[data])
+                column++
+            }
+            // for (let column = 1; column <= lastColumn; column++) {
+            //     console.log(row[column])
+            // }
+        })
 
         // Save the workbook
-
-        const reportPatAndName = `./Reporte_Subcontratistas_${getMonthAndYear()}.xlsx`
+        const reportPatAndName = `./src/reportes/Reporte_Subcontratistas${getMonthAndYear()}.xlsx`
         await workbook.toFileAsync(reportPatAndName);
         console.log("Data written successfully to worksheet 'data'.");
 
@@ -42,12 +64,7 @@ async function writeDataToWorksheet(templatePath, dataPath) {
     }
 }
 
-// Usage example
-const data = [
-    ['RUC1', 'EMPRESA1', 'CONTRATISTA1', 'DNI1', 'NOMBRES1', '2023-01-01', 'TIPO1', 'PUESTO1', 'OBRA1', 'DOMICILIO1', 'DISTRITO1', 'M', '2023-12-31', 'PERU', '2023-01-01', 'ACTIVO', 'INDEFINIDO', 'HPT1'],
-    ['RUC2', 'EMPRESA2', 'CONTRATISTA2', 'DNI2', 'NOMBRES2', '1980-05-15', 'TIPO2', 'PUESTO2', 'OBRA2', 'DOMICILIO2', 'DISTRITO2', 'F', '', 'PERU', '2022-06-01', 'INACTIVO', 'TEMPORAL', 'HPT2'],
-    // Add more rows as needed
-];
+
 
 
 
