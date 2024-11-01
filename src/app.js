@@ -79,7 +79,7 @@ app.post("/uploadfiles", async (req, res) => {
 
             // Extract the contents of the zip file
             console.log(uploadDestination, "UPLOADDESTINATION")
-            zip.extractAllTo("./src/subcontratistas", /* overwrite */ true);
+            zip.extractAllTo(path.join(__dirname, "subcontratistas"), /* overwrite */ true);
 
             // Delete the uploaded zip file
             fs.unlinkSync(uploadedFilePath);
