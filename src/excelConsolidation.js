@@ -3,7 +3,7 @@ const reader = require("xlsx");
 const fs = require("fs");
 const path = require("path");
 var _ = require("lodash");
-const { writeDataToWorksheet } = require("./excelReporting")
+
 
 let progress = 1;
 let dataColumns = [
@@ -112,13 +112,8 @@ function consolidateExcelFile(uploadedFileName) {
     reader.writeFile(newBook, path.join(__dirname, "ReporteConsolidado.xlsx"))
 
 
-    //Generate month's report 
-    /**
-     * @param String templatePath
-     * @param String dataPath
-     */
-    writeDataToWorksheet("template.xlsx")
-    // writeDataToWorksheet("./template.xlsx", "./ReporteConsolidad.xlsx")
+
+
 
     console.log("Proceso terminado con exito");
     deleteFilesFromDirectory(); //Cleanup function

@@ -96,10 +96,12 @@ async function downloadFile() {
 
 const getMonthAndYear = () => {
     const date = new Date();  // 2009-11-10
-    const month = date.toLocaleString('es-ES', { month: 'long' }).toUpperCase();
+    const month = date.getMonth() - 1
+    const newDate = new Date(date.getFullYear(), month, 1)
+    const monthString = newDate.toLocaleString('es-ES', { month: 'long' }).toUpperCase();
 
     const year = date.getFullYear()
-    return `_${month}_${year}`;
+    return `_${monthString}_${year}`;
 }
 
 // Prevent the default behavior of the browser when files are dropped.

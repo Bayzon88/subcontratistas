@@ -13,6 +13,7 @@ const app = express();
 
 //Modules
 const { getCurrentProgress, consolidateExcelFile } = require("./excelConsolidation")
+const { writeDataToWorksheet } = require("./excelReporting")
 
 //Environmental Variables 
 const port = process.env.PORT || 3000;
@@ -89,6 +90,8 @@ app.post("/uploadfiles", async (req, res) => {
 
             consolidateExcelFile(pathExtractedFolder);
 
+            //Generate month's report 
+            await writeDataToWorksheet("template.xlsx")
             res.status(200).end()
         } catch (err) {
             console.error(err);
