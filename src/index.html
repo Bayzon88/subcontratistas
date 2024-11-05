@@ -61,7 +61,13 @@
       import { createChat } from "https://cdn.jsdelivr.net/npm/@n8n/chat/dist/chat.bundle.es.js";
 
       createChat({
-        webhookUrl: "https://www.alvarobeltran.dev/automation/webhook",
+        webhookUrl:
+          "https://www.alvarobeltran.dev/automation/webhook/d8e6dacf-af23-4bea-88e4-6b26711ddc91/chat",
+        webhookConfig: {
+          method: "POST",
+          headers: {},
+        },
+        chatInputKey: "chatInput",
       });
     </script>
     <script
