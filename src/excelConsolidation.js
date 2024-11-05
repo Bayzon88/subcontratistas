@@ -151,8 +151,6 @@ function consolidateExcelFile(uploadedFileName) {
         });
 
 
-
-
         personalSubcontrata.forEach((trabajador) => {
             if (typeof trabajador["TIPO TRABAJADOR"] == "string") {
                 let edgeCaseTrabajadorTipo = String(trabajador["TIPO TRABAJADOR"]).toLowerCase().trim();
@@ -263,7 +261,7 @@ function consolidateExcelFile(uploadedFileName) {
 
             //Edge cases for fecha de cese
             if (trabajador['FECHA CESE/BAJA'] == undefined) {
-                trabajador['FECHA CESE/BAJA'] = 0;
+                trabajador['FECHA CESE/BAJA'] = "";
             }
         });
 
