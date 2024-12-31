@@ -54,7 +54,6 @@ app.get("/", (req, res) => res.sendFile(__dirname + "/index.html"));
 
 app.post("/uploadfiles", async (req, res) => {
 
-
     //Guard clause to check if the file exists
     if (!req.files || !req.files.zipFile) {
         return res.status(401).send("No file uploaded");
@@ -94,9 +93,11 @@ app.post("/uploadfiles", async (req, res) => {
             await writeDataToWorksheet("template.xlsx")
             res.status(200).end()
         } catch (err) {
+
             console.error(err);
             //Remove all files from the folder 
             // fs.rm(path.join(__dirname, uploadDestination), { recursive: true }, () => res.status(500).send("File processing failed"))
+            res.status(500).json({ message: "Error in server" }).end()
         }
     });
 });

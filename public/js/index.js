@@ -64,12 +64,7 @@ submitFiles.addEventListener("click", (event) => {
                 downloadBtn.textContent = "Descargar Archivo";
                 downloadBtn.addEventListener('click', () => downloadFile())
                 document.body.appendChild(downloadBtn);
-
-
             }
-
-
-
         })
         .catch((error) => {
             // Handle any errors that occur during download
@@ -89,15 +84,12 @@ async function downloadFile() {
         downloadElement.download = `Reporte_Subcontratistas${getMonthAndYear()}.xlsx`
         downloadElement.click()
 
-
-
         // Revoke the Blob URL to free up resources 
         window.URL.revokeObjectURL(downloadURL);
 
         //Re-enable procesar button after 
         submitFiles.disabled = false;
     })
-
 
     // Revoke the Blob URL after download is initiated
     // window.URL.revokeObjectURL(url);
