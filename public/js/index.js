@@ -31,15 +31,24 @@ const label = document.querySelector(".label-text");
 const dropZone = document.querySelector("#drop-area");
 
 /************************************ File Submission ************************************/
+
+fileInput.addEventListener("change", (e) => {
+    const selectedFile = fileInput.files[0];
+    if (selectedFile) {
+        label.textContent = "Archivo seleccionado: " + selectedFile.name;
+        sendFileToServer(selectedFile); // Reuse the same logic for sending the file to the server
+    }
+});
+
 // Add an event listener to the submit button
 submitFiles.addEventListener("click", (event) => {
     event.preventDefault(); // Prevent the default form submission behavior
     const formData = new FormData(); // Create a FormData object to hold the form data
-
+    console.log("selecting")
     // Append the selected file to the FormData object
     const selectedFile = fileInput.files[0];
     formData.append("zipFile", selectedFile);
-
+    console.log(selectedFile)
     //Disable button to prevent a retrigger of the button
     submitFiles.disabled = true
     // Send a POST request to the /uploadfiles endpoint with the FormData
