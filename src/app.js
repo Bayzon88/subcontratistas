@@ -132,8 +132,9 @@ app.get("/downloadFile", (req, res) => {
 })
 
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
     console.log(`Example app listening on port ${port}!`);
 
 });
 
+server.timeout(600000)
