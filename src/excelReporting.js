@@ -2,8 +2,6 @@ const XlsxPopulate = require('xlsx-populate');
 const path = require('path');
 async function writeDataToWorksheet(templatePath) {
 
-
-
     try {
         //Read from Reporte Consolidado File
         const reporteConsolidado = await XlsxPopulate.fromFileAsync(path.join(__dirname, "ReporteConsolidado.xlsx"))
@@ -56,6 +54,7 @@ async function writeDataToWorksheet(templatePath) {
 
         // Save the workbook
         const reportPatAndName = path.join(__dirname, `reportes/Reporte_Subcontratistas${getMonthAndYear()}.xlsx`)
+        console.log("Report path and name", reportPatAndName)
         await workbook.toFileAsync(reportPatAndName);
         console.log("Data written successfully to worksheet 'data'.");
 
@@ -67,13 +66,14 @@ async function writeDataToWorksheet(templatePath) {
 
 
 
-
 const getMonthAndYear = () => {
     const date = new Date();  // 2009-11-10
-    const month = date.toLocaleString('es-ES', { month: 'long' }).toUpperCase();
+    const month = date.getMonth() - 1
+    const newDate = new Date(date.getFullYear(), month, 1)
+    const monthString = newDate.toLocaleString('es-ES', { month: 'long' }).toUpperCase();
 
-    const year = date.getFullYear()
-    return `_${month}_${year}`;
+    const year = monthString == 'DICIEMBRE' ? date.getFullYear() - 1 : date.getFullYear()
+    return `_${monthString}_${year}`;
 }
 
 module.exports = { writeDataToWorksheet }

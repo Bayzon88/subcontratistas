@@ -36,7 +36,7 @@ fileInput.addEventListener("change", (e) => {
     const selectedFile = fileInput.files[0];
     if (selectedFile) {
         label.textContent = "Archivo seleccionado: " + selectedFile.name;
-        sendFileToServer(selectedFile); // Reuse the same logic for sending the file to the server
+        // sendFileToServer(selectedFile); // Reuse the same logic for sending the file to the server
     }
 });
 
@@ -48,7 +48,7 @@ submitFiles.addEventListener("click", (event) => {
     // Append the selected file to the FormData object
     const selectedFile = fileInput.files[0];
     formData.append("zipFile", selectedFile);
-    console.log(selectedFile)
+
     //Disable button to prevent a retrigger of the button
     submitFiles.disabled = true
     // Send a POST request to the /uploadfiles endpoint with the FormData
@@ -62,13 +62,18 @@ submitFiles.addEventListener("click", (event) => {
                 const downloadBtn = document.createElement("button");
 
                 downloadBtn.textContent = "Descargar Archivo";
+                downloadBtn.classList = 'btn btn-secondary'
+                downloadBtn.setAttribute('id', 'btn-download')
                 downloadBtn.addEventListener('click', () => downloadFile())
-                document.body.appendChild(downloadBtn);
+                btnContainer = document.querySelector('#btn-container')
+                btnContainer.appendChild(downloadBtn);
             }
         })
         .catch((error) => {
             // Handle any errors that occur during download
             console.error("Error downloading file:", error);
+            createRefreshPageForError()
+
         });
 });
 /**************************************************************************************/
@@ -101,7 +106,7 @@ const getMonthAndYear = () => {
     const newDate = new Date(date.getFullYear(), month, 1)
     const monthString = newDate.toLocaleString('es-ES', { month: 'long' }).toUpperCase();
 
-    const year = date.getFullYear()
+    const year = monthString == 'DICIEMBRE' ? date.getFullYear() - 1 : date.getFullYear()
     return `_${monthString}_${year}`;
 }
 
@@ -116,3 +121,21 @@ dropZone.addEventListener("drop", (e) => {
     label.textContent = "Archivo seleccionado: " + e.dataTransfer.files[0].name;
     fileInput.files = e.dataTransfer.files;
 });
+
+//Refresh page on Error
+const createRefreshPageForError = () => {
+
+    // Create a button element
+    const refreshButton = document.createElement("button");
+
+    // Set button text
+    refreshButton.textContent = "Error: Refresh Page";
+
+    // Add a click event listener to refresh the page
+    refreshButton.addEventListener("click", () => {
+        location.reload(); // Reload the current page
+    });
+
+    // Append the button to the container or body
+    document.getElementById("btn-container").appendChild(refreshButton);
+}

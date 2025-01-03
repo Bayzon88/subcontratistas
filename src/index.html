@@ -10,6 +10,16 @@
     />
 
     <link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet" />
+    <style>
+      .label-text {
+        height: 100px;
+        cursor: inherit;
+      }
+      #drop-area {
+        height: 600px;
+        cursor: pointer;
+      }
+    </style>
   </head>
   <body>
     <h1>Consolidar subcontratistas</h1>
@@ -41,11 +51,7 @@
         </div>
       </div>
     </form>
-    <div class="w-100 d-flex justify-content-center mt-5">
-      <button class="btn btn-secondary" id="btn-download" onclick="downloadFile()">
-        Descargar Archivo
-      </button>
-    </div>
+    <div class="w-100 d-flex justify-content-center mt-5" id="btn-container"></div>
 
     <script type="module"></script>
     <script
