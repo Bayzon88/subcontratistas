@@ -53,7 +53,7 @@ app.use(fileUpload());
 app.get("/", (req, res) => res.sendFile(__dirname + "/index.html"));
 
 app.post("/uploadfiles", async (req, res) => {
-    req.setTimeout(100000)
+    req.setTimeout(600000)
     //Guard clause to check if the file exists
     if (!req.files || !req.files.zipFile) {
         return res.status(401).send("No file uploaded");
@@ -132,15 +132,9 @@ app.get("/downloadFile", (req, res) => {
 })
 
 
-const server = app.listen(port, () => {
+app.listen(port, () => {
     console.log(`Example app listening on port ${port}!`);
 
 });
 
-server.requestTimeout = 5000;
-server.headersTimeout = 2000;
-server.keepAliveTimeout = 3000;
-server.setTimeout(600000, (socket) => {
-    console.log('timeout');
-    socket.destroy();
-});
+
