@@ -140,7 +140,7 @@ const server = app.listen(port, () => {
 server.requestTimeout = 5000;
 server.headersTimeout = 2000;
 server.keepAliveTimeout = 3000;
-server.setTimeout(60000, (socket) => {
+server.setTimeout(600000, (socket) => {
     console.log('timeout');
     socket.destroy();
 });
