@@ -53,7 +53,7 @@ app.use(fileUpload());
 app.get("/", (req, res) => res.sendFile(__dirname + "/index.html"));
 
 app.post("/uploadfiles", async (req, res) => {
-
+    req.setTimeout(100000)
     //Guard clause to check if the file exists
     if (!req.files || !req.files.zipFile) {
         return res.status(401).send("No file uploaded");
@@ -136,3 +136,4 @@ app.listen(port, () => {
     console.log(`Example app listening on port ${port}!`);
 
 });
+

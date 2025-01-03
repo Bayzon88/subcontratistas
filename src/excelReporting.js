@@ -54,7 +54,7 @@ async function writeDataToWorksheet(templatePath) {
 
         // Save the workbook
         const reportPatAndName = path.join(__dirname, `reportes/Reporte_Subcontratistas${getMonthAndYear()}.xlsx`)
-        console.log("Report path and name", reportPatAndName)
+
         await workbook.toFileAsync(reportPatAndName);
         console.log("Data written successfully to worksheet 'data'.");
 
