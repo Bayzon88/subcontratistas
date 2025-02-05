@@ -24,33 +24,60 @@
   <body>
     <h1>Consolidar subcontratistas</h1>
     <!-- Bootstrap Form Group -->
-    <form method="post" action="/uploadfiles" enctype="multipart/form-data">
-      <div class="m-auto w-50">
-        <div
-          class="border border-1 rounded-2 d-flex justify-content-center align-items-center mt-5"
-          id="drop-area"
-        >
-          <label id="" for="myfiles" class="form-label fs-1 label-text text-center"
+    <div class="d-flex gap-3">
+      <div class="d-flex w-50 flex-column ">
+        <div>
+          <h4>*Importante: </h4>
+          <ul>
+            <li>El archivo debe estar en formato zip</li>
+            <li>El archivo debe estar en formato zip</li>
+          </ul>
+        </div>
+        <h2>Instrucciones:</h2>
+        <ol>
+          <li> Ingresar a alvarobeltran.dev</li>
+          <li> Seleccionar o arrastrar archivo hacia donde dice "Arrastrelo aqui"</li>
+          <li> Si hiciste click en "seleccione archivo" Se abre una ventana para buscar archivo, elegir el archivo zip y hacer click en aceptar(abrir)</li>
+          <li> Si el archivo se selecciono correctamente, aparecera "Archivo seleccionado: nombre de archivo.zip"</li>
+
+          <li> Hacer click en procesar</li>
+          <li> Esperar a que procese el archivo</li>
+          <li> Una vez terminado el proceso, aparecera un boton para "Descargar Archivo"</li>
+          <li> Hacer click en "Descargar Archivo"</li>
+          <li> Seleccionar folder en donde se guardara el archivo y hacer click en guardar</li>
+        </ol>
+      </div>
+      <div class="d-flex w-50">
+
+        <form method="post" action="/uploadfiles" enctype="multipart/form-data">
+          <div class="m-auto w-100">
+            <div
+            class="border border-1 rounded-2 d-flex justify-content-center align-items-center mt-5"
+            id="drop-area"
+            >
+            <label id="" for="myfiles" class="form-label fs-1 label-text text-center"
             >Seleccione Archivo o arrastrelo aqui
           </label>
           <input
-            class="form-control form-control-lg d-none"
-            id="myfiles"
-            name="zipFile"
-            type="file"
+          class="form-control form-control-lg d-none"
+          id="myfiles"
+          name="zipFile"
+          type="file"
           />
         </div>
         <div class="w-100 d-flex justify-content-end mt-3">
           <input
-            id="submit-files"
-            type="submit"
-            value="Procesar"
-            accept=".zip"
-            class="btn btn-success w-100"
+          id="submit-files"
+          type="submit"
+          value="Procesar"
+          accept=".zip"
+          class="btn btn-success w-100"
           />
         </div>
       </div>
+    </div>
     </form>
+    </div>
     <div class="w-100 d-flex justify-content-center mt-5" id="btn-container"></div>
 
     <script type="module"></script>

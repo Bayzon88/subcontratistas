@@ -45,7 +45,6 @@ function consolidateExcelFile(uploadedFileName) {
         fs.mkdirSync(targetDir);
     }
 
-
     //Loop through every file in the directory, read and consolidate data into an array of objects
     directories.forEach((directory) => {
         logCurrentProgress();
@@ -85,7 +84,6 @@ function consolidateExcelFile(uploadedFileName) {
     //Combine all JSON objects into 1 array instead of array of arrays with JSON inside
     const combinedArray = [].concat(...data);
 
-
     //Remove duplicated values
     let setWithNoDuplicates = new Set(combinedArray.map(JSON.stringify)); //Create a new Set without duplicates
     let combinedArrayWithoutDuplicates = [];
@@ -110,10 +108,6 @@ function consolidateExcelFile(uploadedFileName) {
     */
     //Write in file
     reader.writeFile(newBook, path.join(__dirname, "ReporteConsolidado.xlsx"))
-
-
-
-
 
     console.log("Proceso terminado con exito");
     deleteFilesFromDirectory(); //Cleanup function
@@ -269,10 +263,6 @@ function consolidateExcelFile(uploadedFileName) {
     }
     //********************************************************* END Convert File to json *********************************************************/
 
-
-
-
-
     //********************************************************** START Delete all files *********************************************************/
     function deleteFilesFromDirectory() {
         //Cleanup function to remove all files from the directory once the consolidation process is finished
@@ -286,6 +276,7 @@ function consolidateExcelFile(uploadedFileName) {
 
     }
     //*********************************************************** END Delete all files **********************************************************/
+
 
     function logCurrentProgress() {
         // if (progress >= directories.length) progress = 0
