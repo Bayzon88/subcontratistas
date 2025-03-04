@@ -16,7 +16,7 @@ const { getCurrentProgress, consolidateExcelFile } = require("./excelConsolidati
 const { writeDataToWorksheet } = require("./excelReporting")
 
 //Environmental Variables 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 5000;
 const uploadDestination = process.env.DATAFOLDER_URL || "subcontratistas";
 
 //TODO: Separate routing 
@@ -53,7 +53,7 @@ app.use(fileUpload());
 app.get("/", (req, res) => res.sendFile(__dirname + "/index.html"));
 
 app.post("/uploadfiles", async (req, res) => {
-    req.setTimeout(600000)
+    req.setTimeout(6000000)
     //Guard clause to check if the file exists
     if (!req.files || !req.files.zipFile) {
         return res.status(401).send("No file uploaded");
