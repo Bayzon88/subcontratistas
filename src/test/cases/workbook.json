@@ -1,0 +1,33 @@
+{
+  "_comment": "Case table for pipeline/workbook.js. sheetMatch drives matchSheetName() (03-expected-output.md §1.2 'Sheet selection'); numericName drives isNumericName() (§2.3, the 643-row header-shift block). expectedIssue is the issue code the reader raises for that case, or null when the case is clean.",
+  "sheetMatch": [
+    { "input": ["Cuadro"], "expected": { "name": "Cuadro", "exact": true }, "expectedIssue": null },
+    { "input": ["Hoja1", "Cuadro", "Resumen"], "expected": { "name": "Cuadro", "exact": true }, "expectedIssue": null },
+    { "input": ["CUADRO"], "expected": { "name": "CUADRO", "exact": false }, "expectedIssue": "SHEET_MATCHED_LOOSELY" },
+    { "input": ["cuadro"], "expected": { "name": "cuadro", "exact": false }, "expectedIssue": "SHEET_MATCHED_LOOSELY" },
+    { "input": [" cuadro "], "expected": { "name": " cuadro ", "exact": false }, "expectedIssue": "SHEET_MATCHED_LOOSELY" },
+    { "input": ["CUADRO "], "expected": { "name": "CUADRO ", "exact": false }, "expectedIssue": "SHEET_MATCHED_LOOSELY" },
+    { "input": ["Cuádro"], "expected": { "name": "Cuádro", "exact": false }, "expectedIssue": "SHEET_MATCHED_LOOSELY" },
+    { "input": ["Cuadro\n"], "expected": { "name": "Cuadro\n", "exact": false }, "expectedIssue": "SHEET_MATCHED_LOOSELY" },
+    { "input": ["Hoja1", "CUADRO ", "Cuadro"], "expected": { "name": "CUADRO ", "exact": false }, "expectedIssue": "SHEET_MATCHED_LOOSELY" },
+    { "input": ["Cuadro 2026"], "expected": null, "expectedIssue": "SHEET_NOT_FOUND" },
+    { "input": ["Cuadro1"], "expected": null, "expectedIssue": "SHEET_NOT_FOUND" },
+    { "input": ["Hoja1", "PERSONAL"], "expected": null, "expectedIssue": "SHEET_NOT_FOUND" },
+    { "input": [], "expected": null, "expectedIssue": "SHEET_NOT_FOUND" }
+  ],
+  "numericName": [
+    { "input": 20101155588, "expected": true, "expectedIssue": "ROW_NUMERIC_NAME" },
+    { "input": "20101155588", "expected": true, "expectedIssue": "ROW_NUMERIC_NAME" },
+    { "input": " 20101155588 ", "expected": true, "expectedIssue": "ROW_NUMERIC_NAME" },
+    { "input": "09994533", "expected": true, "expectedIssue": "ROW_NUMERIC_NAME" },
+    { "input": "12345678", "expected": true, "expectedIssue": "ROW_NUMERIC_NAME" },
+    { "input": "123456789", "expected": true, "expectedIssue": "ROW_NUMERIC_NAME" },
+    { "input": 45123, "expected": true, "expectedIssue": "ROW_NUMERIC_NAME" },
+    { "input": "1234567", "expected": false, "expectedIssue": null },
+    { "input": "123456789012", "expected": false, "expectedIssue": null },
+    { "input": "PEREZ QUISPE, JUAN CARLOS", "expected": false, "expectedIssue": null },
+    { "input": "MAMANI 20101155588", "expected": false, "expectedIssue": null },
+    { "input": "", "expected": false, "expectedIssue": null },
+    { "input": null, "expected": false, "expectedIssue": null }
+  ]
+}

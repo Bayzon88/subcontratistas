@@ -1,0 +1,40 @@
+{
+  "period": "2026-02",
+  "workbooks": [
+    "header-row-4",
+    "leading-blank-column",
+    "columns-reordered",
+    "empresa-left-of-ruc",
+    "headers-accent-stripped",
+    "contratista-spelled-correctly",
+    "duplicate-header",
+    "sheet-not-named-cuadro",
+    "no-cuadro-sheet",
+    "column-shifted",
+    "text-dates",
+    "fractional-serials",
+    "cese-sentinels",
+    "dni-leading-zero",
+    "codes-out-of-domain",
+    "no-hpt-column",
+    "text-columns-dirty"
+  ],
+  "containers": [
+    {
+      "name": "folder-two-xlsx",
+      "kind": "folder"
+    },
+    {
+      "name": "folder-zero-xlsx",
+      "kind": "folder"
+    },
+    {
+      "name": "folder-lockfile",
+      "kind": "folder"
+    },
+    {
+      "name": "zip-macosx-resource-fork",
+      "kind": "zip"
+    }
+  ]
+}

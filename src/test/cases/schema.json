@@ -1,0 +1,586 @@
+{
+  "period": "2026-02",
+  "note": "Whole-row cases. Every `input` marked source:'ReporteConsolidado' is a row lifted verbatim out of src/ReporteConsolidado.xlsx!Cuadro (the last real run, 5,065 rows); the sheet row is in `fila`. `expected` is the exact record schema.js must emit for the 18 canonical columns; `expectedIssues` is the exact issue list (severity/code/columna), in order.",
+  "cases": [
+    {
+      "id": "clean",
+      "note": "A row with nothing wrong with it. The control: zero issues, every field typed.",
+      "source": "ReporteConsolidado",
+      "fila": 621,
+      "input": {
+        "RUC": 20603070446,
+        "EMPRESA": "CLIMAXI INGENIEROS EIRL",
+        "CONTRATISTA PRNCIPAL": "CLIMAXI INGENIEROS EIRL",
+        "Nro. DNI / CE": "75836705",
+        "APELLIDOS Y NOMBRES": "JURUPE CONTRERAS JOSE MANUEL",
+        "FECHA NACIMIENTO": "01/12/2002",
+        "TIPO TRABAJADOR": 2,
+        "TITULO DE PUESTO/CARGO": "OFICIAL DE IMPERMEABILIZACION",
+        "NOMBRE DE OBRA DONDE ESTA ASIGNADO DURANTE EL MES REPORTADO": "E3-4",
+        "DOMICILIO DE TRABAJADOR": "Calle Buenaventura sialer 137, Pueblo Nuevo",
+        "DISTRITO SEGÚN DNI": "Lambayeque",
+        "GENERO": "masculino",
+        "FECHA CESE/BAJA": "",
+        "NACIONALIDAD": "PERUANO",
+        "FECHA INICIO DE LABORES EN OBRA": 45847,
+        "ESTADO": 1,
+        "TIPO DE CONTRATO LABORAL": 4,
+        "HPT": 208
+      },
+      "expectedOk": true,
+      "expected": {
+        "RUC": "20603070446",
+        "EMPRESA": "CLIMAXI INGENIEROS EIRL",
+        "CONTRATISTA PRNCIPAL": "CLIMAXI INGENIEROS EIRL",
+        "Nro. DNI / CE": "75836705",
+        "APELLIDOS Y NOMBRES": "JURUPE CONTRERAS JOSE MANUEL",
+        "FECHA NACIMIENTO": 37591,
+        "TIPO TRABAJADOR": 2,
+        "TITULO DE PUESTO/CARGO": "OFICIAL DE IMPERMEABILIZACION",
+        "NOMBRE DE OBRA DONDE ESTA ASIGNADO DURANTE EL MES REPORTADO": "E3-4",
+        "DOMICILIO DE TRABAJADOR": "Calle Buenaventura sialer 137, Pueblo Nuevo",
+        "DISTRITO SEGÚN DNI": "Lambayeque",
+        "GENERO": "masculino",
+        "FECHA CESE/BAJA": null,
+        "NACIONALIDAD": "PERUANO",
+        "FECHA INICIO DE LABORES EN OBRA": 45847,
+        "ESTADO": 1,
+        "TIPO DE CONTRATO LABORAL": 4,
+        "HPT": 208
+      },
+      "expectedIssues": []
+    },
+    {
+      "id": "textDateThreeDigitYear",
+      "note": "03 §3.1 / BUG-06. '09/10/205' is real. The date is nulled and reported; the other 17 fields survive - this is the case that proves one bad cell does not discard the row.",
+      "source": "ReporteConsolidado",
+      "fila": 34,
+      "input": {
+        "RUC": 20551663079,
+        "EMPRESA": "ACP AMBIENTAL SAC",
+        "CONTRATISTA PRNCIPAL": "ACP AMBIENTAL SAC",
+        "Nro. DNI / CE": 76451446,
+        "APELLIDOS Y NOMBRES": "VELASQUEZ CHALO PAUL SEBASTIAN",
+        "FECHA NACIMIENTO": 36952,
+        "TIPO TRABAJADOR": 3,
+        "TITULO DE PUESTO/CARGO": "AUXILIAR DE RESIDUOS",
+        "NOMBRE DE OBRA DONDE ESTA ASIGNADO DURANTE EL MES REPORTADO": "ESTACIONES Y PATIO TALLER",
+        "DOMICILIO DE TRABAJADOR": "CALLE FAUSTINO SILVA 533",
+        "DISTRITO SEGÚN DNI": "SAN JUAN DE MIRAFLORES",
+        "GENERO": "masculino",
+        "FECHA CESE/BAJA": "",
+        "NACIONALIDAD": "PERUANA",
+        "FECHA INICIO DE LABORES EN OBRA": "09/10/205",
+        "ESTADO": 1,
+        "TIPO DE CONTRATO LABORAL": 1,
+        "HPT": 18
+      },
+      "expectedOk": true,
+      "expected": {
+        "RUC": "20551663079",
+        "EMPRESA": "ACP AMBIENTAL SAC",
+        "CONTRATISTA PRNCIPAL": "ACP AMBIENTAL SAC",
+        "Nro. DNI / CE": "76451446",
+        "APELLIDOS Y NOMBRES": "VELASQUEZ CHALO PAUL SEBASTIAN",
+        "FECHA NACIMIENTO": 36952,
+        "TIPO TRABAJADOR": 3,
+        "TITULO DE PUESTO/CARGO": "AUXILIAR DE RESIDUOS",
+        "NOMBRE DE OBRA DONDE ESTA ASIGNADO DURANTE EL MES REPORTADO": "ESTACIONES Y PATIO TALLER",
+        "DOMICILIO DE TRABAJADOR": "CALLE FAUSTINO SILVA 533",
+        "DISTRITO SEGÚN DNI": "SAN JUAN DE MIRAFLORES",
+        "GENERO": "masculino",
+        "FECHA CESE/BAJA": null,
+        "NACIONALIDAD": "PERUANA",
+        "FECHA INICIO DE LABORES EN OBRA": null,
+        "ESTADO": 1,
+        "TIPO DE CONTRATO LABORAL": 1,
+        "HPT": 18
+      },
+      "expectedIssues": [
+        { "severity": "ERROR", "code": "DATE_UNPARSEABLE", "columna": "FECHA INICIO DE LABORES EN OBRA", "valor": "09/10/205" }
+      ]
+    },
+    {
+      "id": "textDateNotADateShape",
+      "note": "03 §3.1. '10-11-202-6' is real and is a different failure class from '09/10/205' - the malformed year is recurring, not one typo. TIPO DE CONTRATO LABORAL is genuinely blank here and codes.js is silent about blanks by design.",
+      "source": "ReporteConsolidado",
+      "fila": 1486,
+      "input": {
+        "RUC": 20538586197,
+        "EMPRESA": "FIRE PROTECTION PERU SAC",
+        "CONTRATISTA PRNCIPAL": "FIRE PROTECTION PERU SAC",
+        "Nro. DNI / CE": "76209628",
+        "APELLIDOS Y NOMBRES": "VELARDE RUIZ NICOLAS ALEXIS",
+        "FECHA NACIMIENTO": 38190,
+        "TIPO TRABAJADOR": 1,
+        "TITULO DE PUESTO/CARGO": "OBRERO",
+        "NOMBRE DE OBRA DONDE ESTA ASIGNADO DURANTE EL MES REPORTADO": "INSTALACIÓN DE REDES CONTRA INCENDIO E-4",
+        "DOMICILIO DE TRABAJADOR": "CALLE ICA -6TA SONA 645",
+        "DISTRITO SEGÚN DNI": "El agustino ",
+        "GENERO": "masculino",
+        "FECHA CESE/BAJA": "",
+        "NACIONALIDAD": "Peruano",
+        "FECHA INICIO DE LABORES EN OBRA": "10-11-202-6",
+        "ESTADO": 1,
+        "TIPO DE CONTRATO LABORAL": null,
+        "HPT": 200
+      },
+      "expectedOk": true,
+      "expected": {
+        "RUC": "20538586197",
+        "EMPRESA": "FIRE PROTECTION PERU SAC",
+        "CONTRATISTA PRNCIPAL": "FIRE PROTECTION PERU SAC",
+        "Nro. DNI / CE": "76209628",
+        "APELLIDOS Y NOMBRES": "VELARDE RUIZ NICOLAS ALEXIS",
+        "FECHA NACIMIENTO": 38190,
+        "TIPO TRABAJADOR": 1,
+        "TITULO DE PUESTO/CARGO": "OBRERO",
+        "NOMBRE DE OBRA DONDE ESTA ASIGNADO DURANTE EL MES REPORTADO": "INSTALACIÓN DE REDES CONTRA INCENDIO E-4",
+        "DOMICILIO DE TRABAJADOR": "CALLE ICA -6TA SONA 645",
+        "DISTRITO SEGÚN DNI": "El agustino",
+        "GENERO": "masculino",
+        "FECHA CESE/BAJA": null,
+        "NACIONALIDAD": "PERUANO",
+        "FECHA INICIO DE LABORES EN OBRA": null,
+        "ESTADO": 1,
+        "TIPO DE CONTRATO LABORAL": null,
+        "HPT": 200
+      },
+      "expectedIssues": [
+        { "severity": "ERROR", "code": "DATE_UNPARSEABLE", "columna": "FECHA INICIO DE LABORES EN OBRA", "valor": "10-11-202-6" }
+      ]
+    },
+    {
+      "id": "outOfDomainEstado",
+      "note": "BUG-20 / criterion 11. ESTADO=184 and TIPO DE CONTRATO LABORAL=0.03 are both real, both survived parseInt into the delivered report, and 184 is now a column of the `Tabla` pivot. Both become null + WARNING, the row lives.",
+      "source": "ReporteConsolidado",
+      "fila": 2106,
+      "input": {
+        "RUC": 20514849910,
+        "EMPRESA": "LICHTHAUS S.A.C.",
+        "CONTRATISTA PRNCIPAL": "LICHTHAUS S.A.C.",
+        "Nro. DNI / CE": "47137192",
+        "APELLIDOS Y NOMBRES": "OLIVA USHIÑAHUA CHRISTIAN ",
+        "FECHA NACIMIENTO": 33285,
+        "TIPO TRABAJADOR": 1,
+        "TITULO DE PUESTO/CARGO": "TECNICO ELECTRICO",
+        "NOMBRE DE OBRA DONDE ESTA ASIGNADO DURANTE EL MES REPORTADO": "SUMINISTRO E INSTALACION DE PUESTA A TIERRA PARA LA ESTACION E11  ",
+        "DOMICILIO DE TRABAJADOR": "MZ. G LOTE 05 PISO 02 COOP TALAVERA LA REYNA ",
+        "DISTRITO SEGÚN DNI": "EL AGUSTINO ",
+        "GENERO": "masculino",
+        "FECHA CESE/BAJA": "",
+        "NACIONALIDAD": "Peruano",
+        "FECHA INICIO DE LABORES EN OBRA": 45085,
+        "ESTADO": 184,
+        "TIPO DE CONTRATO LABORAL": 0.03,
+        "HPT": 160
+      },
+      "expectedOk": true,
+      "expected": {
+        "RUC": "20514849910",
+        "EMPRESA": "LICHTHAUS S.A.C.",
+        "CONTRATISTA PRNCIPAL": "LICHTHAUS S.A.C.",
+        "Nro. DNI / CE": "47137192",
+        "APELLIDOS Y NOMBRES": "OLIVA USHIÑAHUA CHRISTIAN",
+        "FECHA NACIMIENTO": 33285,
+        "TIPO TRABAJADOR": 1,
+        "TITULO DE PUESTO/CARGO": "TECNICO ELECTRICO",
+        "NOMBRE DE OBRA DONDE ESTA ASIGNADO DURANTE EL MES REPORTADO": "SUMINISTRO E INSTALACION DE PUESTA A TIERRA PARA LA ESTACION E11",
+        "DOMICILIO DE TRABAJADOR": "MZ. G LOTE 05 PISO 02 COOP TALAVERA LA REYNA",
+        "DISTRITO SEGÚN DNI": "EL AGUSTINO",
+        "GENERO": "masculino",
+        "FECHA CESE/BAJA": null,
+        "NACIONALIDAD": "PERUANO",
+        "FECHA INICIO DE LABORES EN OBRA": 45085,
+        "ESTADO": null,
+        "TIPO DE CONTRATO LABORAL": null,
+        "HPT": 160
+      },
+      "expectedIssues": [
+        { "severity": "WARNING", "code": "CODE_OUT_OF_DOMAIN", "columna": "ESTADO", "valor": 184 },
+        { "severity": "WARNING", "code": "CODE_OUT_OF_DOMAIN", "columna": "TIPO DE CONTRATO LABORAL", "valor": 0.03 }
+      ]
+    },
+    {
+      "id": "leadingZeroDni",
+      "note": "BUG-23 / criterion 13. 7648943 arrives as a NUMBER: the leading zero was destroyed on the way in. identity.js repads to 8 and flags it, so the operator can verify against the source instead of the report quietly showing a 7-digit DNI. The cese sentinel '-' also fires here.",
+      "source": "ReporteConsolidado",
+      "fila": 108,
+      "input": {
+        "RUC": 20552282215,
+        "EMPRESA": "AGEFRED PERU S.A.C.",
+        "CONTRATISTA PRNCIPAL": "AGEFRED PERU S.A.C.",
+        "Nro. DNI / CE": 7648943,
+        "APELLIDOS Y NOMBRES": "OCHOA ARTEAGA CESAR JUAN",
+        "FECHA NACIMIENTO": 27861,
+        "TIPO TRABAJADOR": 2,
+        "TITULO DE PUESTO/CARGO": "OPERARIO ELECTRICISTA",
+        "NOMBRE DE OBRA DONDE ESTA ASIGNADO DURANTE EL MES REPORTADO": "E19",
+        "DOMICILIO DE TRABAJADOR": "ASOC DE VIV CHILLON PISO 3ER MZ. O LT-34",
+        "DISTRITO SEGÚN DNI": "PUENTE PIEDRA",
+        "GENERO": "masculino",
+        "FECHA CESE/BAJA": "-",
+        "NACIONALIDAD": "Peruana",
+        "FECHA INICIO DE LABORES EN OBRA": 45971,
+        "ESTADO": 1,
+        "TIPO DE CONTRATO LABORAL": 4,
+        "HPT": 224
+      },
+      "expectedOk": true,
+      "expected": {
+        "RUC": "20552282215",
+        "EMPRESA": "AGEFRED PERU S.A.C.",
+        "CONTRATISTA PRNCIPAL": "AGEFRED PERU S.A.C.",
+        "Nro. DNI / CE": "07648943",
+        "APELLIDOS Y NOMBRES": "OCHOA ARTEAGA CESAR JUAN",
+        "FECHA NACIMIENTO": 27861,
+        "TIPO TRABAJADOR": 2,
+        "TITULO DE PUESTO/CARGO": "OPERARIO ELECTRICISTA",
+        "NOMBRE DE OBRA DONDE ESTA ASIGNADO DURANTE EL MES REPORTADO": "E19",
+        "DOMICILIO DE TRABAJADOR": "ASOC DE VIV CHILLON PISO 3ER MZ. O LT-34",
+        "DISTRITO SEGÚN DNI": "PUENTE PIEDRA",
+        "GENERO": "masculino",
+        "FECHA CESE/BAJA": null,
+        "NACIONALIDAD": "PERUANA",
+        "FECHA INICIO DE LABORES EN OBRA": 45971,
+        "ESTADO": 1,
+        "TIPO DE CONTRATO LABORAL": 4,
+        "HPT": 224
+      },
+      "expectedIssues": [
+        { "severity": "WARNING", "code": "RUC_CHECK_DIGIT", "columna": "RUC", "valor": 20552282215 },
+        { "severity": "WARNING", "code": "DNI_LENGTH", "columna": "Nro. DNI / CE", "valor": 7648943 },
+        { "severity": "INFO", "code": "TEXT_NORMALIZED", "columna": "FECHA CESE/BAJA", "valor": "-" }
+      ],
+      "issueNote": "AGEFRED PERU appears in the corpus under TWO RUCs one digit apart - 20552282214 (row 36, check digit VALID) and 20552282215 (row 108, check digit INVALID). One of the two is a typo, and the mod-11 check is what tells them apart. Verified with identity.normalizeRuc against both."
+    },
+    {
+      "id": "numericName",
+      "note": "03 §2.3, the 643-row header-shift block. The RUC 20101155588 is sitting in APELLIDOS Y NOMBRES and the birth date is a fractional serial from the same broken export. ONE ERROR line, row discarded - the other cells of a row nobody will see are not itemised.",
+      "source": "ReporteConsolidado",
+      "input": {
+        "RUC": null,
+        "EMPRESA": null,
+        "CONTRATISTA PRNCIPAL": null,
+        "Nro. DNI / CE": null,
+        "APELLIDOS Y NOMBRES": 20101155588,
+        "FECHA NACIMIENTO": 30655.791666666668,
+        "TIPO TRABAJADOR": 1,
+        "TITULO DE PUESTO/CARGO": "COORDINADORA DE SEGURIDAD",
+        "NOMBRE DE OBRA DONDE ESTA ASIGNADO DURANTE EL MES REPORTADO": "PATIO TALLER SANTA ANITA",
+        "DOMICILIO DE TRABAJADOR": "Urb. Santa Rosita Mzh Lote 14",
+        "DISTRITO SEGÚN DNI": "ATE VITARTE",
+        "GENERO": "femenino",
+        "FECHA CESE/BAJA": "",
+        "NACIONALIDAD": "Peruana",
+        "FECHA INICIO DE LABORES EN OBRA": 45471.791666666664,
+        "ESTADO": 1,
+        "TIPO DE CONTRATO LABORAL": 1,
+        "HPT": 192
+      },
+      "expectedOk": false,
+      "expectedReason": "ROW_NUMERIC_NAME",
+      "expected": null,
+      "expectedIssues": [
+        { "severity": "ERROR", "code": "ROW_NUMERIC_NAME", "columna": "APELLIDOS Y NOMBRES", "valor": 20101155588 }
+      ]
+    },
+    {
+      "id": "numericNameAsText",
+      "note": "Same defect, arriving as text rather than as a number. /^\\d{8,11}$/ after trimming, per 03 §2.3.",
+      "input": { "APELLIDOS Y NOMBRES": " 20101155588 ", "EMPRESA": "X SAC" },
+      "expectedOk": false,
+      "expectedReason": "ROW_NUMERIC_NAME",
+      "expected": null,
+      "expectedIssuesInclude": [
+        { "severity": "ERROR", "code": "ROW_NUMERIC_NAME", "columna": "APELLIDOS Y NOMBRES" }
+      ]
+    },
+    {
+      "id": "generoUndefinedLiteral",
+      "note": "BUG-18 / criterion 12. The literal string 'undefined' produced a third gender column in OCTUBRE_2025 and broke the +F53/$F$60 percentage block. z.enum makes it unrepresentable. This row is one of the 10; everything else in it is null, so it also fails the name requirement.",
+      "source": "ReporteConsolidado",
+      "fila": 26,
+      "input": {
+        "RUC": null, "EMPRESA": null, "CONTRATISTA PRNCIPAL": null, "Nro. DNI / CE": null,
+        "APELLIDOS Y NOMBRES": null, "FECHA NACIMIENTO": null, "TIPO TRABAJADOR": null,
+        "TITULO DE PUESTO/CARGO": null,
+        "NOMBRE DE OBRA DONDE ESTA ASIGNADO DURANTE EL MES REPORTADO": null,
+        "DOMICILIO DE TRABAJADOR": null, "DISTRITO SEGÚN DNI": null, "GENERO": "undefined",
+        "FECHA CESE/BAJA": "", "NACIONALIDAD": null, "FECHA INICIO DE LABORES EN OBRA": null,
+        "ESTADO": null, "TIPO DE CONTRATO LABORAL": null, "HPT": null
+      },
+      "expectedOk": false,
+      "expectedReason": "REQUIRED_MISSING",
+      "expected": null,
+      "expectedIssuesInclude": [
+        { "severity": "WARNING", "code": "CODE_OUT_OF_DOMAIN", "columna": "GENERO", "valor": "undefined" },
+        { "severity": "ERROR", "code": "REQUIRED_MISSING", "columna": "APELLIDOS Y NOMBRES" }
+      ]
+    },
+    {
+      "id": "generoUppercase",
+      "note": "03 §4.4. 25 rows carry 'MASCULINO'. It passes the template's LOWER() check but produces a second pivot item and splits the gender columns. Stored lowercase, no issue - it is a recognised synonym.",
+      "input": { "APELLIDOS Y NOMBRES": "ACOSTA LOPEZ CARLOS ANTONIO", "GENERO": "MASCULINO" },
+      "expectedOk": true,
+      "expectedField": { "GENERO": "masculino" },
+      "expectedIssuesInclude": []
+    },
+    {
+      "id": "generoNumericCode",
+      "note": "BUG-18. The old switch compared a lowercased string against numeric `case 1:` branches, so every numeric GENERO fell through to `default` and became the literal 'undefined'.",
+      "input": { "APELLIDOS Y NOMBRES": "X Y", "GENERO": 1 },
+      "expectedOk": true,
+      "expectedField": { "GENERO": "masculino" },
+      "expectedIssuesInclude": []
+    },
+    {
+      "id": "contratoUntrimmed",
+      "note": "BUG-19. 'PLAZO FIJO ' switched on the RAW string in the old code and missed every case.",
+      "input": { "APELLIDOS Y NOMBRES": "X Y", "TIPO DE CONTRATO LABORAL": "PLAZO FIJO " },
+      "expectedOk": true,
+      "expectedField": { "TIPO DE CONTRATO LABORAL": 1 },
+      "expectedIssuesInclude": []
+    },
+    {
+      "id": "contratoLowConfidenceSi",
+      "note": "03 §4.3. 'si' -> 4 is inherited and almost certainly a subcontratista answering 'does he have a contract?'. Kept, but flagged so the operator can count how often it fires.",
+      "input": { "APELLIDOS Y NOMBRES": "X Y", "TIPO DE CONTRATO LABORAL": "si" },
+      "expectedOk": true,
+      "expectedField": { "TIPO DE CONTRATO LABORAL": 4 },
+      "expectedIssuesInclude": [
+        { "severity": "INFO", "code": "TEXT_NORMALIZED", "columna": "TIPO DE CONTRATO LABORAL", "valor": "si" }
+      ]
+    },
+    {
+      "id": "ceseSentinelWord",
+      "note": "03 §3.7 / criterion 10 / BUG-09. 'ACTIVO' (58 rows) becomes a GENUINELY EMPTY cell, not the text '' the old writer forced into a numFmtId-14 column for 3,801 rows.",
+      "source": "ReporteConsolidado",
+      "fila": 1049,
+      "input": { "APELLIDOS Y NOMBRES": "APOLINARIO ALEJANDRO RONALD ABEL ", "FECHA CESE/BAJA": "ACTIVO" },
+      "expectedOk": true,
+      "expectedField": { "FECHA CESE/BAJA": null, "APELLIDOS Y NOMBRES": "APOLINARIO ALEJANDRO RONALD ABEL" },
+      "expectedIssuesInclude": [
+        { "severity": "INFO", "code": "TEXT_NORMALIZED", "columna": "FECHA CESE/BAJA", "valor": "ACTIVO" }
+      ]
+    },
+    {
+      "id": "ceseSentinelDashes",
+      "note": "criterion 10. '---' x125.",
+      "input": { "APELLIDOS Y NOMBRES": "X Y", "FECHA CESE/BAJA": "---" },
+      "expectedOk": true,
+      "expectedField": { "FECHA CESE/BAJA": null },
+      "expectedIssuesInclude": [
+        { "severity": "INFO", "code": "TEXT_NORMALIZED", "columna": "FECHA CESE/BAJA", "valor": "---" }
+      ]
+    },
+    {
+      "id": "ceseSentinelBlank",
+      "note": "criterion 10. '' x3,801 - by far the commonest value in the column. Silent: 3,801 INFO lines saying 'this worker is still employed' would bury every real finding.",
+      "input": { "APELLIDOS Y NOMBRES": "X Y", "FECHA CESE/BAJA": "" },
+      "expectedOk": true,
+      "expectedField": { "FECHA CESE/BAJA": null },
+      "expectedIssuesInclude": []
+    },
+    {
+      "id": "ceseIsAName",
+      "note": "03 §3.7, last row. A person's name in the cese column is a column shift, not a sentinel. WARNING (not ERROR) because FECHA CESE/BAJA is not required - dates.js's DATE_POLICY decides that.",
+      "source": "ReporteConsolidado",
+      "fila": 1526,
+      "input": { "APELLIDOS Y NOMBRES": "X Y", "FECHA CESE/BAJA": "PUMACAYO VILCHEZ TEOFILO DINO" },
+      "expectedOk": true,
+      "expectedField": { "FECHA CESE/BAJA": null },
+      "expectedIssuesInclude": [
+        { "severity": "WARNING", "code": "DATE_UNPARSEABLE", "columna": "FECHA CESE/BAJA", "valor": "PUMACAYO VILCHEZ TEOFILO DINO" }
+      ]
+    },
+    {
+      "id": "birthTwoDigitYear",
+      "note": "03 §3.3. A 2-digit year on a birth date is rejected outright: 3/5/65 meaning 1965 is indistinguishable from a typo, and FECHA NACIMIENTO feeds Edad, Rango Edades and the Validacion pivot.",
+      "input": { "APELLIDOS Y NOMBRES": "X Y", "FECHA NACIMIENTO": "3/5/65" },
+      "expectedOk": true,
+      "expectedField": { "FECHA NACIMIENTO": null },
+      "expectedIssuesInclude": [
+        { "severity": "ERROR", "code": "DATE_TWO_DIGIT_YEAR", "columna": "FECHA NACIMIENTO", "valor": "3/5/65" }
+      ]
+    },
+    {
+      "id": "startTwoDigitYear",
+      "note": "03 §3.3 / §3.7. '30/1/26' in column O expands past-only at pivot 60 to 30 Jan 2026 = serial 46052.",
+      "input": { "APELLIDOS Y NOMBRES": "X Y", "FECHA INICIO DE LABORES EN OBRA": "30/1/26" },
+      "expectedOk": true,
+      "expectedField": { "FECHA INICIO DE LABORES EN OBRA": 46052 },
+      "expectedIssuesInclude": [
+        { "severity": "INFO", "code": "DATE_TWO_DIGIT_YEAR", "columna": "FECHA INICIO DE LABORES EN OBRA", "valor": "30/1/26" }
+      ]
+    },
+    {
+      "id": "fractionalSerial",
+      "note": "03 §2.3 / §3.7. 1,280 fractional serials in the last run, all from one broken export, at .79166667 (19:00) and .83333333 (20:00). Truncated to the integer day.",
+      "input": { "APELLIDOS Y NOMBRES": "X Y", "FECHA NACIMIENTO": 30655.791666666668 },
+      "expectedOk": true,
+      "expectedField": { "FECHA NACIMIENTO": 30655 },
+      "expectedIssuesInclude": [
+        { "severity": "INFO", "code": "DATE_FRACTIONAL_TRUNCATED", "columna": "FECHA NACIMIENTO", "valor": 30655.791666666668 }
+      ]
+    },
+    {
+      "id": "futureCese",
+      "note": "03 §3.5. Serial 46235 = 2026-08-01, sitting in the FEBRERO_2026 detail block. Beyond PeriodoFin + 1 month, so out of range: nulled, WARNING, and dates.js keeps the parsed value in detalle so metrics.js can still answer 05 §8 Q6.",
+      "input": { "APELLIDOS Y NOMBRES": "X Y", "FECHA CESE/BAJA": 46235 },
+      "expectedOk": true,
+      "expectedField": { "FECHA CESE/BAJA": null },
+      "expectedIssuesInclude": [
+        { "severity": "WARNING", "code": "DATE_IMPLAUSIBLE", "columna": "FECHA CESE/BAJA", "valor": 46235 }
+      ]
+    },
+    {
+      "id": "ceseBeforeInicio",
+      "note": "03 §3.5, the cross-field rule dates.js explicitly leaves to schema.js: FECHA CESE/BAJA >= FECHA INICIO DE LABORES EN OBRA. Both parse and both are individually in range; only the pair is wrong. The cese is nulled, the start survives.",
+      "input": {
+        "APELLIDOS Y NOMBRES": "X Y",
+        "FECHA INICIO DE LABORES EN OBRA": 45971,
+        "FECHA CESE/BAJA": 45900
+      },
+      "expectedOk": true,
+      "expectedField": { "FECHA INICIO DE LABORES EN OBRA": 45971, "FECHA CESE/BAJA": null },
+      "expectedIssuesInclude": [
+        { "severity": "WARNING", "code": "DATE_IMPLAUSIBLE", "columna": "FECHA CESE/BAJA", "valor": 45900 }
+      ]
+    },
+    {
+      "id": "rucCheckDigitFails",
+      "note": "23 of the 146 distinct RUCs in the last run fail the SUNAT mod-11 check. WARNING, never a rejection (05 §8 Q7) - dropping them would delete whole subcontratistas.",
+      "input": { "APELLIDOS Y NOMBRES": "X Y", "RUC": "20552282215" },
+      "expectedOk": true,
+      "expectedField": { "RUC": "20552282215" },
+      "expectedIssuesInclude": [
+        { "severity": "WARNING", "code": "RUC_CHECK_DIGIT", "columna": "RUC", "valor": "20552282215" }
+      ]
+    },
+    {
+      "id": "rucIsActuallyADni",
+      "note": "The single format failure in the corpus: 71514158, an 8-digit DNI in the RUC column, stored as a number. Deliberately NOT zero-padded to 11 - that would launder a real signal into a check-digit error.",
+      "input": { "APELLIDOS Y NOMBRES": "X Y", "RUC": 71514158 },
+      "expectedOk": true,
+      "expectedField": { "RUC": "71514158" },
+      "expectedIssuesInclude": [
+        { "severity": "WARNING", "code": "RUC_FORMAT", "columna": "RUC", "valor": 71514158 }
+      ]
+    },
+    {
+      "id": "dniIsACe",
+      "note": "134 values at 9 digits are legitimate carnets de extranjeria with significant leading zeros, not errors. INFO, valid, text preserved.",
+      "input": { "APELLIDOS Y NOMBRES": "X Y", "Nro. DNI / CE": "001079894" },
+      "expectedOk": true,
+      "expectedField": { "Nro. DNI / CE": "001079894" },
+      "expectedIssuesInclude": [
+        { "severity": "INFO", "code": "DNI_LENGTH", "columna": "Nro. DNI / CE", "valor": "001079894" }
+      ]
+    },
+    {
+      "id": "missingHptCellPresentColumn",
+      "note": "HPT is required (§2 row 18) and this cell is blank while the column exists: one WARNING naming the row.",
+      "input": { "APELLIDOS Y NOMBRES": "X Y", "HPT": null },
+      "expectedOk": true,
+      "expectedField": { "HPT": null },
+      "expectedIssuesInclude": [
+        { "severity": "WARNING", "code": "REQUIRED_MISSING", "columna": "HPT" }
+      ]
+    },
+    {
+      "id": "hptDecimalComma",
+      "note": "197.5 is the third commonest HPT value in the corpus. A Peruvian-locale '197,5' must not be silently truncated by parseInt (which is how 0.03 got into TIPO DE CONTRATO LABORAL).",
+      "input": { "APELLIDOS Y NOMBRES": "X Y", "HPT": "197,5" },
+      "expectedOk": true,
+      "expectedField": { "HPT": 197.5 },
+      "expectedIssuesInclude": [
+        { "severity": "INFO", "code": "TEXT_NORMALIZED", "columna": "HPT", "valor": "197,5" }
+      ]
+    },
+    {
+      "id": "hptNonNumeric",
+      "note": "criterion 11: no NaN reaches Cuadro. 'N/A' is nulled and reported, never Number('N/A').",
+      "input": { "APELLIDOS Y NOMBRES": "X Y", "HPT": "N/A" },
+      "expectedOk": true,
+      "expectedField": { "HPT": null },
+      "expectedIssuesInclude": [
+        { "severity": "WARNING", "code": "CODE_OUT_OF_DOMAIN", "columna": "HPT", "valor": "N/A" }
+      ]
+    },
+    {
+      "id": "hptNegative",
+      "note": "§2 row 18: HPT >= 0. A negative hours figure is nulled at the zod gate, not written.",
+      "input": { "APELLIDOS Y NOMBRES": "X Y", "HPT": -8 },
+      "expectedOk": true,
+      "expectedField": { "HPT": null },
+      "expectedIssuesInclude": [
+        { "severity": "WARNING", "code": "CODE_OUT_OF_DOMAIN", "columna": "HPT", "valor": -8 }
+      ]
+    },
+    {
+      "id": "hptZero",
+      "note": "0 hours is a real value (134 rows) and must NOT be treated as absent. This is the case z.coerce.number('') would have manufactured.",
+      "input": { "APELLIDOS Y NOMBRES": "X Y", "HPT": 0 },
+      "expectedOk": true,
+      "expectedField": { "HPT": 0 },
+      "expectedIssuesInclude": []
+    },
+    {
+      "id": "dirtyContratista",
+      "note": "03 §2.1. Both spellings are verified present in template.xlsx's pivotCacheDefinition and are part of the 352-distinct-spellings-for-84-companies problem. Whitespace collapse is NOT itemised per cell (it would be ~4,000 lines); it comes back on result.normalizations for the grouped run-report section.",
+      "input": {
+        "APELLIDOS Y NOMBRES": "X Y",
+        "CONTRATISTA PRNCIPAL": " CLJ CONTRUCTORA SAC",
+        "EMPRESA": "_x000d__x000a_MCORP SAC"
+      },
+      "expectedOk": true,
+      "expectedField": {
+        "CONTRATISTA PRNCIPAL": "CLJ CONTRUCTORA SAC",
+        "EMPRESA": "MCORP SAC"
+      },
+      "expectedIssuesInclude": [],
+      "expectedNormalizations": ["EMPRESA", "CONTRATISTA PRNCIPAL"]
+    },
+    {
+      "id": "nbspInJobTitle",
+      "note": "Measured by text.js and absent from the plan: 7 NBSP in TITULO DE PUESTO/CARGO. Excel's TRIM does not remove NBSP at all, so 'OPERARIO\\u00a0ELECTRICISTA' and 'OPERARIO ELECTRICISTA' are two pivot labels for one job title.",
+      "input": { "APELLIDOS Y NOMBRES": "X Y", "TITULO DE PUESTO/CARGO": "OPERARIO ELECTRICISTA" },
+      "expectedOk": true,
+      "expectedField": { "TITULO DE PUESTO/CARGO": "OPERARIO ELECTRICISTA" },
+      "expectedIssuesInclude": []
+    },
+    {
+      "id": "numericEmpresa",
+      "note": "A number in a text column is a misfiling, not a whitespace defect - reported per cell at WARNING while whitespace collapse is not, because it is rare and it is real.",
+      "input": { "APELLIDOS Y NOMBRES": "X Y", "EMPRESA": 12345 },
+      "expectedOk": true,
+      "expectedField": { "EMPRESA": "12345" },
+      "expectedIssuesInclude": [
+        { "severity": "WARNING", "code": "TEXT_NORMALIZED", "columna": "EMPRESA", "valor": 12345 }
+      ]
+    },
+    {
+      "id": "whitespaceOnlyName",
+      "note": "03 §8.3: 'no APELLIDOS Y NOMBRES' is an ERROR row rejection. A cell of spaces is not a name.",
+      "input": { "APELLIDOS Y NOMBRES": "   ", "EMPRESA": "X SAC" },
+      "expectedOk": false,
+      "expectedReason": "REQUIRED_MISSING",
+      "expected": null,
+      "expectedIssuesInclude": [
+        { "severity": "ERROR", "code": "REQUIRED_MISSING", "columna": "APELLIDOS Y NOMBRES" }
+      ]
+    },
+    {
+      "id": "emptyRow",
+      "note": "§1.4 rule 4 territory. A blank row is a non-event: INFO, not ERROR, so criterion 7's found - rejected = accepted arithmetic does not report noise as damage.",
+      "input": {},
+      "expectedOk": false,
+      "expectedReason": "ROW_EMPTY",
+      "expected": null,
+      "expectedIssuesInclude": [
+        { "severity": "INFO", "code": "ROW_EMPTY" }
+      ]
+    }
+  ]
+}

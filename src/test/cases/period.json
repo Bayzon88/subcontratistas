@@ -1,0 +1,616 @@
+{
+  "_comment": [
+    "Case table for src/pipeline/period.js (03-expected-output.md §6, 05-implementation-plan.md Phase 4 task 1).",
+    "A bad period THROWS rather than producing an IssueList entry - it is a caller error that must stop the run",
+    "before any file is read - so `expectedIssue` here carries the PeriodError.code that must be thrown.",
+    "Serials were generated with Date.UTC arithmetic and each was cross-checked against XLSX.SSF.parse_date_code;",
+    "the test re-runs that cross-check on every record."
+  ],
+  "valid": [
+    {
+      "input": "2025-01",
+      "note": "every month of a full year",
+      "expected": {
+        "key": "2025-01",
+        "year": 2025,
+        "month": 1,
+        "inicio": "2025-01-01",
+        "fin": "2025-01-31",
+        "diasEnMes": 31,
+        "inicioSerial": 45658,
+        "finSerial": 45688,
+        "etiqueta": "1-2025",
+        "mesNombre": "ENERO",
+        "filenameBase": "Reporte_Subcontratistas_ENERO_2025",
+        "filename": "Reporte_Subcontratistas_ENERO_2025.xlsx"
+      }
+    },
+    {
+      "input": "2025-02",
+      "note": "every month of a full year",
+      "expected": {
+        "key": "2025-02",
+        "year": 2025,
+        "month": 2,
+        "inicio": "2025-02-01",
+        "fin": "2025-02-28",
+        "diasEnMes": 28,
+        "inicioSerial": 45689,
+        "finSerial": 45716,
+        "etiqueta": "2-2025",
+        "mesNombre": "FEBRERO",
+        "filenameBase": "Reporte_Subcontratistas_FEBRERO_2025",
+        "filename": "Reporte_Subcontratistas_FEBRERO_2025.xlsx"
+      }
+    },
+    {
+      "input": "2025-03",
+      "note": "every month of a full year",
+      "expected": {
+        "key": "2025-03",
+        "year": 2025,
+        "month": 3,
+        "inicio": "2025-03-01",
+        "fin": "2025-03-31",
+        "diasEnMes": 31,
+        "inicioSerial": 45717,
+        "finSerial": 45747,
+        "etiqueta": "3-2025",
+        "mesNombre": "MARZO",
+        "filenameBase": "Reporte_Subcontratistas_MARZO_2025",
+        "filename": "Reporte_Subcontratistas_MARZO_2025.xlsx"
+      }
+    },
+    {
+      "input": "2025-04",
+      "note": "every month of a full year",
+      "expected": {
+        "key": "2025-04",
+        "year": 2025,
+        "month": 4,
+        "inicio": "2025-04-01",
+        "fin": "2025-04-30",
+        "diasEnMes": 30,
+        "inicioSerial": 45748,
+        "finSerial": 45777,
+        "etiqueta": "4-2025",
+        "mesNombre": "ABRIL",
+        "filenameBase": "Reporte_Subcontratistas_ABRIL_2025",
+        "filename": "Reporte_Subcontratistas_ABRIL_2025.xlsx"
+      }
+    },
+    {
+      "input": "2025-05",
+      "note": "every month of a full year",
+      "expected": {
+        "key": "2025-05",
+        "year": 2025,
+        "month": 5,
+        "inicio": "2025-05-01",
+        "fin": "2025-05-31",
+        "diasEnMes": 31,
+        "inicioSerial": 45778,
+        "finSerial": 45808,
+        "etiqueta": "5-2025",
+        "mesNombre": "MAYO",
+        "filenameBase": "Reporte_Subcontratistas_MAYO_2025",
+        "filename": "Reporte_Subcontratistas_MAYO_2025.xlsx"
+      }
+    },
+    {
+      "input": "2025-06",
+      "note": "every month of a full year",
+      "expected": {
+        "key": "2025-06",
+        "year": 2025,
+        "month": 6,
+        "inicio": "2025-06-01",
+        "fin": "2025-06-30",
+        "diasEnMes": 30,
+        "inicioSerial": 45809,
+        "finSerial": 45838,
+        "etiqueta": "6-2025",
+        "mesNombre": "JUNIO",
+        "filenameBase": "Reporte_Subcontratistas_JUNIO_2025",
+        "filename": "Reporte_Subcontratistas_JUNIO_2025.xlsx"
+      }
+    },
+    {
+      "input": "2025-07",
+      "note": "every month of a full year",
+      "expected": {
+        "key": "2025-07",
+        "year": 2025,
+        "month": 7,
+        "inicio": "2025-07-01",
+        "fin": "2025-07-31",
+        "diasEnMes": 31,
+        "inicioSerial": 45839,
+        "finSerial": 45869,
+        "etiqueta": "7-2025",
+        "mesNombre": "JULIO",
+        "filenameBase": "Reporte_Subcontratistas_JULIO_2025",
+        "filename": "Reporte_Subcontratistas_JULIO_2025.xlsx"
+      }
+    },
+    {
+      "input": "2025-08",
+      "note": "every month of a full year",
+      "expected": {
+        "key": "2025-08",
+        "year": 2025,
+        "month": 8,
+        "inicio": "2025-08-01",
+        "fin": "2025-08-31",
+        "diasEnMes": 31,
+        "inicioSerial": 45870,
+        "finSerial": 45900,
+        "etiqueta": "8-2025",
+        "mesNombre": "AGOSTO",
+        "filenameBase": "Reporte_Subcontratistas_AGOSTO_2025",
+        "filename": "Reporte_Subcontratistas_AGOSTO_2025.xlsx"
+      }
+    },
+    {
+      "input": "2025-09",
+      "note": "every month of a full year",
+      "expected": {
+        "key": "2025-09",
+        "year": 2025,
+        "month": 9,
+        "inicio": "2025-09-01",
+        "fin": "2025-09-30",
+        "diasEnMes": 30,
+        "inicioSerial": 45901,
+        "finSerial": 45930,
+        "etiqueta": "9-2025",
+        "mesNombre": "SEPTIEMBRE",
+        "filenameBase": "Reporte_Subcontratistas_SEPTIEMBRE_2025",
+        "filename": "Reporte_Subcontratistas_SEPTIEMBRE_2025.xlsx"
+      }
+    },
+    {
+      "input": "2025-10",
+      "note": "every month of a full year",
+      "expected": {
+        "key": "2025-10",
+        "year": 2025,
+        "month": 10,
+        "inicio": "2025-10-01",
+        "fin": "2025-10-31",
+        "diasEnMes": 31,
+        "inicioSerial": 45931,
+        "finSerial": 45961,
+        "etiqueta": "10-2025",
+        "mesNombre": "OCTUBRE",
+        "filenameBase": "Reporte_Subcontratistas_OCTUBRE_2025",
+        "filename": "Reporte_Subcontratistas_OCTUBRE_2025.xlsx"
+      }
+    },
+    {
+      "input": "2025-11",
+      "note": "every month of a full year",
+      "expected": {
+        "key": "2025-11",
+        "year": 2025,
+        "month": 11,
+        "inicio": "2025-11-01",
+        "fin": "2025-11-30",
+        "diasEnMes": 30,
+        "inicioSerial": 45962,
+        "finSerial": 45991,
+        "etiqueta": "11-2025",
+        "mesNombre": "NOVIEMBRE",
+        "filenameBase": "Reporte_Subcontratistas_NOVIEMBRE_2025",
+        "filename": "Reporte_Subcontratistas_NOVIEMBRE_2025.xlsx"
+      }
+    },
+    {
+      "input": "2025-12",
+      "note": "every month of a full year",
+      "expected": {
+        "key": "2025-12",
+        "year": 2025,
+        "month": 12,
+        "inicio": "2025-12-01",
+        "fin": "2025-12-31",
+        "diasEnMes": 31,
+        "inicioSerial": 45992,
+        "finSerial": 46022,
+        "etiqueta": "12-2025",
+        "mesNombre": "DICIEMBRE",
+        "filenameBase": "Reporte_Subcontratistas_DICIEMBRE_2025",
+        "filename": "Reporte_Subcontratistas_DICIEMBRE_2025.xlsx"
+      }
+    },
+    {
+      "input": "2024-02",
+      "note": "leap February - 29 days",
+      "expected": {
+        "key": "2024-02",
+        "year": 2024,
+        "month": 2,
+        "inicio": "2024-02-01",
+        "fin": "2024-02-29",
+        "diasEnMes": 29,
+        "inicioSerial": 45323,
+        "finSerial": 45351,
+        "etiqueta": "2-2024",
+        "mesNombre": "FEBRERO",
+        "filenameBase": "Reporte_Subcontratistas_FEBRERO_2024",
+        "filename": "Reporte_Subcontratistas_FEBRERO_2024.xlsx"
+      }
+    },
+    {
+      "input": "2000-02",
+      "note": "leap February on a 400-year century",
+      "expected": {
+        "key": "2000-02",
+        "year": 2000,
+        "month": 2,
+        "inicio": "2000-02-01",
+        "fin": "2000-02-29",
+        "diasEnMes": 29,
+        "inicioSerial": 36557,
+        "finSerial": 36585,
+        "etiqueta": "2-2000",
+        "mesNombre": "FEBRERO",
+        "filenameBase": "Reporte_Subcontratistas_FEBRERO_2000",
+        "filename": "Reporte_Subcontratistas_FEBRERO_2000.xlsx"
+      }
+    },
+    {
+      "input": "1900-02",
+      "note": "1900 is NOT a leap year, but Excel thinks it is: serials 1..59 sit before the phantom 1900-02-29",
+      "expected": {
+        "key": "1900-02",
+        "year": 1900,
+        "month": 2,
+        "inicio": "1900-02-01",
+        "fin": "1900-02-28",
+        "diasEnMes": 28,
+        "inicioSerial": 32,
+        "finSerial": 59,
+        "etiqueta": "2-1900",
+        "mesNombre": "FEBRERO",
+        "filenameBase": "Reporte_Subcontratistas_FEBRERO_1900",
+        "filename": "Reporte_Subcontratistas_FEBRERO_1900.xlsx"
+      }
+    },
+    {
+      "input": "1900-03",
+      "note": "first day after Excel's phantom 1900-02-29: serial 61, not 60",
+      "expected": {
+        "key": "1900-03",
+        "year": 1900,
+        "month": 3,
+        "inicio": "1900-03-01",
+        "fin": "1900-03-31",
+        "diasEnMes": 31,
+        "inicioSerial": 61,
+        "finSerial": 91,
+        "etiqueta": "3-1900",
+        "mesNombre": "MARZO",
+        "filenameBase": "Reporte_Subcontratistas_MARZO_1900",
+        "filename": "Reporte_Subcontratistas_MARZO_1900.xlsx"
+      }
+    },
+    {
+      "input": "2025-12",
+      "note": "December rollover: etiqueta 12-2025, filename DICIEMBRE_2025",
+      "expected": {
+        "key": "2025-12",
+        "year": 2025,
+        "month": 12,
+        "inicio": "2025-12-01",
+        "fin": "2025-12-31",
+        "diasEnMes": 31,
+        "inicioSerial": 45992,
+        "finSerial": 46022,
+        "etiqueta": "12-2025",
+        "mesNombre": "DICIEMBRE",
+        "filenameBase": "Reporte_Subcontratistas_DICIEMBRE_2025",
+        "filename": "Reporte_Subcontratistas_DICIEMBRE_2025.xlsx"
+      }
+    },
+    {
+      "input": "2026-01",
+      "note": "January after the rollover",
+      "expected": {
+        "key": "2026-01",
+        "year": 2026,
+        "month": 1,
+        "inicio": "2026-01-01",
+        "fin": "2026-01-31",
+        "diasEnMes": 31,
+        "inicioSerial": 46023,
+        "finSerial": 46053,
+        "etiqueta": "1-2026",
+        "mesNombre": "ENERO",
+        "filenameBase": "Reporte_Subcontratistas_ENERO_2026",
+        "filename": "Reporte_Subcontratistas_ENERO_2026.xlsx"
+      }
+    },
+    {
+      "input": "2025-11",
+      "note": "the archive divergence: DICIEMBRE_2025.xlsx carries the Altas filter '11-2025' - named December, reports November (BUG-16)",
+      "expected": {
+        "key": "2025-11",
+        "year": 2025,
+        "month": 11,
+        "inicio": "2025-11-01",
+        "fin": "2025-11-30",
+        "diasEnMes": 30,
+        "inicioSerial": 45962,
+        "finSerial": 45991,
+        "etiqueta": "11-2025",
+        "mesNombre": "NOVIEMBRE",
+        "filenameBase": "Reporte_Subcontratistas_NOVIEMBRE_2025",
+        "filename": "Reporte_Subcontratistas_NOVIEMBRE_2025.xlsx"
+      }
+    },
+    {
+      "input": "2024-09",
+      "note": "the literal '9-2024' still pinned in pivotTable7/pivotTable3 page filters (BUG-17)",
+      "expected": {
+        "key": "2024-09",
+        "year": 2024,
+        "month": 9,
+        "inicio": "2024-09-01",
+        "fin": "2024-09-30",
+        "diasEnMes": 30,
+        "inicioSerial": 45536,
+        "finSerial": 45565,
+        "etiqueta": "9-2024",
+        "mesNombre": "SEPTIEMBRE",
+        "filenameBase": "Reporte_Subcontratistas_SEPTIEMBRE_2024",
+        "filename": "Reporte_Subcontratistas_SEPTIEMBRE_2024.xlsx"
+      }
+    },
+    {
+      "input": "2026-02",
+      "note": "the plan's worked example",
+      "expected": {
+        "key": "2026-02",
+        "year": 2026,
+        "month": 2,
+        "inicio": "2026-02-01",
+        "fin": "2026-02-28",
+        "diasEnMes": 28,
+        "inicioSerial": 46054,
+        "finSerial": 46081,
+        "etiqueta": "2-2026",
+        "mesNombre": "FEBRERO",
+        "filenameBase": "Reporte_Subcontratistas_FEBRERO_2026",
+        "filename": "Reporte_Subcontratistas_FEBRERO_2026.xlsx"
+      }
+    },
+    {
+      "input": "2026-05",
+      "note": "single-digit month etiqueta has no zero padding: 5-2026",
+      "expected": {
+        "key": "2026-05",
+        "year": 2026,
+        "month": 5,
+        "inicio": "2026-05-01",
+        "fin": "2026-05-31",
+        "diasEnMes": 31,
+        "inicioSerial": 46143,
+        "finSerial": 46173,
+        "etiqueta": "5-2026",
+        "mesNombre": "MAYO",
+        "filenameBase": "Reporte_Subcontratistas_MAYO_2026",
+        "filename": "Reporte_Subcontratistas_MAYO_2026.xlsx"
+      }
+    }
+  ],
+  "invalid": [
+    {
+      "input": "2026-2",
+      "expectedIssue": {
+        "code": "PERIOD_MALFORMED"
+      },
+      "note": "month not zero-padded"
+    },
+    {
+      "input": "2026/02",
+      "expectedIssue": {
+        "code": "PERIOD_MALFORMED"
+      },
+      "note": "wrong separator"
+    },
+    {
+      "input": "26-02",
+      "expectedIssue": {
+        "code": "PERIOD_MALFORMED"
+      },
+      "note": "two-digit year"
+    },
+    {
+      "input": "2026-02-01",
+      "expectedIssue": {
+        "code": "PERIOD_MALFORMED"
+      },
+      "note": "a full date is not a period"
+    },
+    {
+      "input": "202602",
+      "expectedIssue": {
+        "code": "PERIOD_MALFORMED"
+      },
+      "note": "no separator"
+    },
+    {
+      "input": "",
+      "expectedIssue": {
+        "code": "PERIOD_MALFORMED"
+      },
+      "note": "empty string"
+    },
+    {
+      "input": "   ",
+      "expectedIssue": {
+        "code": "PERIOD_MALFORMED"
+      },
+      "note": "whitespace only"
+    },
+    {
+      "input": "FEBRERO 2026",
+      "expectedIssue": {
+        "code": "PERIOD_MALFORMED"
+      },
+      "note": "month name, not a period"
+    },
+    {
+      "input": "2026-1a",
+      "expectedIssue": {
+        "code": "PERIOD_MALFORMED"
+      },
+      "note": "non-digit in the month"
+    },
+    {
+      "input": "2026-13",
+      "expectedIssue": {
+        "code": "PERIOD_MONTH_RANGE"
+      },
+      "note": "month above 12"
+    },
+    {
+      "input": "2026-00",
+      "expectedIssue": {
+        "code": "PERIOD_MONTH_RANGE"
+      },
+      "note": "month zero"
+    },
+    {
+      "input": "2026-99",
+      "expectedIssue": {
+        "code": "PERIOD_MONTH_RANGE"
+      },
+      "note": "month far above 12"
+    },
+    {
+      "input": "1899-12",
+      "expectedIssue": {
+        "code": "PERIOD_YEAR_RANGE"
+      },
+      "note": "before the 1900 date system starts"
+    },
+    {
+      "input": "0001-01",
+      "expectedIssue": {
+        "code": "PERIOD_YEAR_RANGE"
+      },
+      "note": "no Excel serial exists"
+    }
+  ],
+  "future": [
+    {
+      "input": "2026-09",
+      "today": "2026-08",
+      "expectedIssue": {
+        "code": "PERIOD_FUTURE"
+      },
+      "note": "next month"
+    },
+    {
+      "input": "2027-01",
+      "today": "2026-08",
+      "expectedIssue": {
+        "code": "PERIOD_FUTURE"
+      },
+      "note": "next year"
+    },
+    {
+      "input": "2026-01",
+      "today": "2025-12",
+      "expectedIssue": {
+        "code": "PERIOD_FUTURE"
+      },
+      "note": "across the January boundary"
+    },
+    {
+      "input": "2026-08",
+      "today": "2026-08",
+      "expectedIssue": null,
+      "note": "the current month is unfinished, not future - allowed"
+    },
+    {
+      "input": "2026-07",
+      "today": "2026-08",
+      "expectedIssue": null,
+      "note": "the normal case: last month"
+    },
+    {
+      "input": "2025-12",
+      "today": "2026-01",
+      "expectedIssue": null,
+      "note": "December reported in January"
+    }
+  ],
+  "previousMonth": [
+    {
+      "input": "2026-01",
+      "expected": "2025-12",
+      "note": "January boundary, string form"
+    },
+    {
+      "input": "2026-01-15",
+      "expected": "2025-12",
+      "note": "January boundary, ISO date form"
+    },
+    {
+      "input": "2026-01-01",
+      "expected": "2025-12",
+      "note": "first day of January"
+    },
+    {
+      "input": "2026-01-31",
+      "expected": "2025-12",
+      "note": "last day of January"
+    },
+    {
+      "input": "2026-03-01",
+      "expected": "2026-02",
+      "note": "March -> February"
+    },
+    {
+      "input": "2025-12-30",
+      "expected": "2025-11",
+      "note": "the DICIEMBRE_2025 run: refreshed 2025-12-30, period NOVIEMBRE"
+    },
+    {
+      "input": "2026-08-02",
+      "expected": "2026-07",
+      "note": "mid-year"
+    },
+    {
+      "input": "2024-03-31",
+      "expected": "2024-02",
+      "note": "into a leap February"
+    }
+  ],
+  "previousMonthInvalid": [
+    {
+      "input": null,
+      "expectedIssue": {
+        "code": "PERIOD_TODAY_INVALID"
+      },
+      "note": "no default: the argument is required"
+    },
+    {
+      "input": "hoy",
+      "expectedIssue": {
+        "code": "PERIOD_TODAY_INVALID"
+      },
+      "note": "not a date"
+    },
+    {
+      "input": "2026-13-01",
+      "expectedIssue": {
+        "code": "PERIOD_TODAY_INVALID"
+      },
+      "note": "month out of range"
+    }
+  ]
+}

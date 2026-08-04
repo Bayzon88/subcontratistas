@@ -1,0 +1,961 @@
+{
+  "_note": "Case table for src/pipeline/identity.js. Every value marked 'measured' is taken verbatim from src/ReporteConsolidado.xlsx (the last real run, 5,065 rows), not invented. 'input' is the RAW cell value, so JSON numbers stand for numeric cells and JSON strings for text cells - which is the whole point of BUG-23. expectedIssue is {code, severity} from src/pipeline/issues.js, or null when the value is clean.",
+  "ruc": [
+    {
+      "id": "known-real-sunat",
+      "note": "04 §H verification set: SUNAT's own RUC",
+      "input": "20131312955",
+      "expected": {
+        "text": "20131312955",
+        "valid": true
+      },
+      "expectedIssue": null
+    },
+    {
+      "id": "known-real-telefonica",
+      "note": "04 §H verification set: Telefonica del Peru",
+      "input": "20100017491",
+      "expected": {
+        "text": "20100017491",
+        "valid": true
+      },
+      "expectedIssue": null
+    },
+    {
+      "id": "known-real-backus",
+      "note": "04 §H verification set: Backus",
+      "input": "20100113610",
+      "expected": {
+        "text": "20100113610",
+        "valid": true
+      },
+      "expectedIssue": null
+    },
+    {
+      "id": "repo-ruc-numeric-cell",
+      "note": "measured: this RUC arrives as a NUMBER in the last run (3,276 numeric RUC cells)",
+      "input": 20604191883,
+      "expected": {
+        "text": "20604191883",
+        "valid": true
+      },
+      "expectedIssue": null
+    },
+    {
+      "id": "repo-ruc-text-cell",
+      "note": "measured: the same column also carries text cells (1,130 of them)",
+      "input": "20547422407",
+      "expected": {
+        "text": "20547422407",
+        "valid": true
+      },
+      "expectedIssue": null
+    },
+    {
+      "id": "repo-ruc-shifted-block",
+      "note": "measured: the RUC that sits in APELLIDOS Y NOMBRES in the 643-row header-shift block (03 §2.3)",
+      "input": "20101155588",
+      "expected": {
+        "text": "20101155588",
+        "valid": true
+      },
+      "expectedIssue": null
+    },
+    {
+      "id": "trailing-spaces-4",
+      "note": "measured raw value: trailing spaces are why 148 distinct raw values are 147 trimmed",
+      "input": "20549351027    ",
+      "expected": {
+        "text": "20549351027",
+        "valid": true
+      },
+      "expectedIssue": null
+    },
+    {
+      "id": "trailing-space-1",
+      "note": "measured raw value",
+      "input": "20548820929 ",
+      "expected": {
+        "text": "20548820929",
+        "valid": true
+      },
+      "expectedIssue": null
+    },
+    {
+      "id": "trailing-space-2",
+      "note": "measured raw value",
+      "input": "20602677126 ",
+      "expected": {
+        "text": "20602677126",
+        "valid": true
+      },
+      "expectedIssue": null
+    },
+    {
+      "id": "internal-space",
+      "note": "whitespace is never significant inside an identifier",
+      "input": "20604 191 883",
+      "expected": {
+        "text": "20604191883",
+        "valid": true
+      },
+      "expectedIssue": null
+    },
+    {
+      "id": "blank-cell-whitespace-only",
+      "note": "measured raw value: a single space, one of the 148 distinct raw RUC values",
+      "input": " ",
+      "expected": {
+        "text": "",
+        "valid": false
+      },
+      "expectedIssue": {
+        "code": "REQUIRED_MISSING",
+        "severity": "WARNING"
+      }
+    },
+    {
+      "id": "empty-string",
+      "input": "",
+      "expected": {
+        "text": "",
+        "valid": false
+      },
+      "expectedIssue": {
+        "code": "REQUIRED_MISSING",
+        "severity": "WARNING"
+      }
+    },
+    {
+      "id": "null-cell",
+      "note": "659 of 5,065 rows have no RUC at all",
+      "input": null,
+      "expected": {
+        "text": "",
+        "valid": false
+      },
+      "expectedIssue": {
+        "code": "REQUIRED_MISSING",
+        "severity": "WARNING"
+      }
+    },
+    {
+      "id": "format-failure-dni-in-ruc-column",
+      "note": "measured: the single value of the 146 that fails the FORMAT check - an 8-digit DNI in the RUC column, numeric cell. Must NOT be zero-padded to 11.",
+      "input": 71514158,
+      "expected": {
+        "text": "71514158",
+        "valid": false
+      },
+      "expectedIssue": {
+        "code": "RUC_FORMAT",
+        "severity": "WARNING"
+      }
+    },
+    {
+      "id": "format-failure-non-digit",
+      "input": "2060419188A",
+      "expected": {
+        "text": "2060419188A",
+        "valid": false
+      },
+      "expectedIssue": {
+        "code": "RUC_FORMAT",
+        "severity": "WARNING"
+      }
+    },
+    {
+      "id": "format-failure-too-long",
+      "input": "206041918830",
+      "expected": {
+        "text": "206041918830",
+        "valid": false
+      },
+      "expectedIssue": {
+        "code": "RUC_FORMAT",
+        "severity": "WARNING"
+      }
+    },
+    {
+      "id": "check-digit-failure-fabricated-run-1",
+      "note": "measured: one of the near-consecutive run 20504039123/125/127/130 - for that prefix only check digit 0 is valid",
+      "input": "20504039123",
+      "expected": {
+        "text": "20504039123",
+        "valid": false
+      },
+      "expectedIssue": {
+        "code": "RUC_CHECK_DIGIT",
+        "severity": "WARNING"
+      }
+    },
+    {
+      "id": "check-digit-failure-fabricated-run-2",
+      "note": "measured",
+      "input": "20504039130",
+      "expected": {
+        "text": "20504039130",
+        "valid": false
+      },
+      "expectedIssue": {
+        "code": "RUC_CHECK_DIGIT",
+        "severity": "WARNING"
+      }
+    },
+    {
+      "id": "check-digit-correct-form-of-fabricated-run",
+      "note": "same first 10 digits as the run above with the check digit SUNAT would compute",
+      "input": "20504039120",
+      "expected": {
+        "text": "20504039120",
+        "valid": true
+      },
+      "expectedIssue": null
+    },
+    {
+      "id": "check-digit-failure-off-by-one",
+      "note": "measured pair: 20100180562 passes, 20100180563 does not - one digit apart",
+      "input": "20100180563",
+      "expected": {
+        "text": "20100180563",
+        "valid": false
+      },
+      "expectedIssue": {
+        "code": "RUC_CHECK_DIGIT",
+        "severity": "WARNING"
+      }
+    },
+    {
+      "id": "check-digit-pass-off-by-one",
+      "note": "measured",
+      "input": "20100180562",
+      "expected": {
+        "text": "20100180562",
+        "valid": true
+      },
+      "expectedIssue": null
+    },
+    {
+      "id": "check-digit-remainder-maps-to-zero",
+      "note": "exercises the r === 10 -> 0 branch of the mod-11 map (r=10 -> check digit 0, value 20514849910)",
+      "input": "20514849910",
+      "expected": {
+        "text": "20514849910",
+        "valid": true
+      },
+      "expectedIssue": null
+    },
+    {
+      "id": "check-digit-remainder-maps-to-one",
+      "note": "exercises the r === 11 -> 1 branch of the mod-11 map (r=11 -> check digit 1, value 20295734681)",
+      "input": "20295734681",
+      "expected": {
+        "text": "20295734681",
+        "valid": true
+      },
+      "expectedIssue": null
+    },
+    {
+      "id": "persona-natural-ruc",
+      "note": "measured: the one 10-prefixed RUC in the last run (a persona natural con negocio)",
+      "input": "10416900774",
+      "expected": {
+        "text": "10416900774",
+        "valid": true
+      },
+      "expectedIssue": null
+    }
+  ],
+  "dni": [
+    {
+      "id": "leading-zero-preserved-text",
+      "note": "the canonical BUG-23 case: 09994533 must not become 9994533",
+      "input": "09994533",
+      "expected": {
+        "text": "09994533",
+        "valid": true,
+        "kind": "DNI",
+        "padded": false
+      },
+      "expectedIssue": null
+    },
+    {
+      "id": "leading-zero-restored-from-number",
+      "note": "the same DNI after Excel stored it as a number: 7 digits, zero-padded back to 8 and flagged",
+      "input": 9994533,
+      "expected": {
+        "text": "09994533",
+        "valid": false,
+        "kind": "DNI",
+        "padded": true
+      },
+      "expectedIssue": {
+        "code": "DNI_LENGTH",
+        "severity": "WARNING"
+      },
+      "expectedReasonMatch": "leading zero"
+    },
+    {
+      "id": "measured-7-char-1",
+      "note": "measured: one of the 4 seven-character values, a numeric cell",
+      "input": 7648943,
+      "expected": {
+        "text": "07648943",
+        "valid": false,
+        "kind": "DNI",
+        "padded": true
+      },
+      "expectedIssue": {
+        "code": "DNI_LENGTH",
+        "severity": "WARNING"
+      },
+      "expectedReasonMatch": "leading zero"
+    },
+    {
+      "id": "measured-7-char-2",
+      "note": "measured",
+      "input": 4218453,
+      "expected": {
+        "text": "04218453",
+        "valid": false,
+        "kind": "DNI",
+        "padded": true
+      },
+      "expectedIssue": {
+        "code": "DNI_LENGTH",
+        "severity": "WARNING"
+      },
+      "expectedReasonMatch": "leading zero"
+    },
+    {
+      "id": "measured-7-char-3",
+      "note": "measured",
+      "input": 9461766,
+      "expected": {
+        "text": "09461766",
+        "valid": false,
+        "kind": "DNI",
+        "padded": true
+      },
+      "expectedIssue": {
+        "code": "DNI_LENGTH",
+        "severity": "WARNING"
+      },
+      "expectedReasonMatch": "leading zero"
+    },
+    {
+      "id": "measured-7-char-4",
+      "note": "measured",
+      "input": 6995451,
+      "expected": {
+        "text": "06995451",
+        "valid": false,
+        "kind": "DNI",
+        "padded": true
+      },
+      "expectedIssue": {
+        "code": "DNI_LENGTH",
+        "severity": "WARNING"
+      },
+      "expectedReasonMatch": "leading zero"
+    },
+    {
+      "id": "measured-8-char-numeric",
+      "note": "measured: the 4,202-value majority, arriving as a number (1,356 numeric DNI cells)",
+      "input": 41876311,
+      "expected": {
+        "text": "41876311",
+        "valid": true,
+        "kind": "DNI",
+        "padded": false
+      },
+      "expectedIssue": null
+    },
+    {
+      "id": "measured-8-char-text",
+      "note": "measured: the same shape as text (2,986 text DNI cells)",
+      "input": "10607258",
+      "expected": {
+        "text": "10607258",
+        "valid": true,
+        "kind": "DNI",
+        "padded": false
+      },
+      "expectedIssue": null
+    },
+    {
+      "id": "measured-8-char-trailing-space",
+      "input": "45113812 ",
+      "expected": {
+        "text": "45113812",
+        "valid": true,
+        "kind": "DNI",
+        "padded": false
+      },
+      "expectedIssue": null
+    },
+    {
+      "id": "measured-9-char-ce-1",
+      "note": "measured: one of the 134 nine-character values - a zero-padded CE, NOT an error",
+      "input": "001079894",
+      "expected": {
+        "text": "001079894",
+        "valid": true,
+        "kind": "CE",
+        "padded": false
+      },
+      "expectedIssue": {
+        "code": "DNI_LENGTH",
+        "severity": "INFO"
+      }
+    },
+    {
+      "id": "measured-9-char-ce-2",
+      "note": "measured",
+      "input": "003268824",
+      "expected": {
+        "text": "003268824",
+        "valid": true,
+        "kind": "CE",
+        "padded": false
+      },
+      "expectedIssue": {
+        "code": "DNI_LENGTH",
+        "severity": "INFO"
+      }
+    },
+    {
+      "id": "measured-9-char-ce-3",
+      "note": "measured",
+      "input": "000503372",
+      "expected": {
+        "text": "000503372",
+        "valid": true,
+        "kind": "CE",
+        "padded": false
+      },
+      "expectedIssue": {
+        "code": "DNI_LENGTH",
+        "severity": "INFO"
+      }
+    },
+    {
+      "id": "short-numeric-padded-to-8-not-9",
+      "note": "a zero-padded CE that Excel stored as a number loses four zeros; padding stops at 8 (DNI length) and the WARNING says the value needs checking",
+      "input": 503372,
+      "expected": {
+        "text": "00503372",
+        "valid": false,
+        "kind": "DNI",
+        "padded": true
+      },
+      "expectedIssue": {
+        "code": "DNI_LENGTH",
+        "severity": "WARNING"
+      },
+      "expectedReasonMatch": "leading zero"
+    },
+    {
+      "id": "measured-9-char-asterisk",
+      "note": "measured: `*09983472` - 9 characters but not 9 digits. Damage, not a CE: kept raw and flagged (03 §2 row 4)",
+      "input": "*09983472",
+      "expected": {
+        "text": "*09983472",
+        "valid": false,
+        "kind": null,
+        "padded": false
+      },
+      "expectedIssue": {
+        "code": "DNI_LENGTH",
+        "severity": "WARNING"
+      }
+    },
+    {
+      "id": "measured-10-char-quote-1",
+      "note": "measured: one of the 2 ten-character values - a literal double quote from a broken text import",
+      "input": "\"000668292",
+      "expected": {
+        "text": "\"000668292",
+        "valid": false,
+        "kind": null,
+        "padded": false
+      },
+      "expectedIssue": {
+        "code": "DNI_LENGTH",
+        "severity": "WARNING"
+      }
+    },
+    {
+      "id": "measured-10-char-quote-2",
+      "note": "measured",
+      "input": "\"000590927",
+      "expected": {
+        "text": "\"000590927",
+        "valid": false,
+        "kind": null,
+        "padded": false
+      },
+      "expectedIssue": {
+        "code": "DNI_LENGTH",
+        "severity": "WARNING"
+      }
+    },
+    {
+      "id": "ten-digit-ce-band",
+      "note": "10 clean digits stays inside the 9-12 CE band",
+      "input": "0006682921",
+      "expected": {
+        "text": "0006682921",
+        "valid": true,
+        "kind": "CE",
+        "padded": false
+      },
+      "expectedIssue": {
+        "code": "DNI_LENGTH",
+        "severity": "INFO"
+      }
+    },
+    {
+      "id": "twelve-digit-ce-band-edge",
+      "input": "000668292100",
+      "expected": {
+        "text": "000668292100",
+        "valid": true,
+        "kind": "CE",
+        "padded": false
+      },
+      "expectedIssue": {
+        "code": "DNI_LENGTH",
+        "severity": "INFO"
+      }
+    },
+    {
+      "id": "thirteen-digits-too-long",
+      "input": "0006682921001",
+      "expected": {
+        "text": "0006682921001",
+        "valid": false,
+        "kind": null,
+        "padded": false
+      },
+      "expectedIssue": {
+        "code": "DNI_LENGTH",
+        "severity": "WARNING"
+      }
+    },
+    {
+      "id": "absent-null",
+      "note": "723 of 5,065 rows had no DNI at all in the last run",
+      "input": null,
+      "expected": {
+        "text": "",
+        "valid": false,
+        "kind": null,
+        "padded": false
+      },
+      "expectedIssue": {
+        "code": "REQUIRED_MISSING",
+        "severity": "WARNING"
+      }
+    },
+    {
+      "id": "absent-empty-string",
+      "input": "",
+      "expected": {
+        "text": "",
+        "valid": false,
+        "kind": null,
+        "padded": false
+      },
+      "expectedIssue": {
+        "code": "REQUIRED_MISSING",
+        "severity": "WARNING"
+      }
+    },
+    {
+      "id": "absent-whitespace-only",
+      "input": "   ",
+      "expected": {
+        "text": "",
+        "valid": false,
+        "kind": null,
+        "padded": false
+      },
+      "expectedIssue": {
+        "code": "REQUIRED_MISSING",
+        "severity": "WARNING"
+      }
+    },
+    {
+      "id": "sentinel-dash",
+      "note": "the FECHA CESE/BAJA sentinels show up in other columns too; a dash is not a document number",
+      "input": "-",
+      "expected": {
+        "text": "-",
+        "valid": false,
+        "kind": null,
+        "padded": false
+      },
+      "expectedIssue": {
+        "code": "DNI_LENGTH",
+        "severity": "WARNING"
+      }
+    }
+  ],
+  "nameKey": [
+    {
+      "id": "plan-trailing-space-pair-a",
+      "note": "05 §3 Phase 3 task 7 / BUG-25: the two spellings the template counts as two people",
+      "input": "HUARCAYA COCCHE JESUS ",
+      "expected": "HUARCAYA COCCHE JESUS"
+    },
+    {
+      "id": "plan-trailing-space-pair-b",
+      "input": "HUARCAYA COCCHE JESUS",
+      "expected": "HUARCAYA COCCHE JESUS"
+    },
+    {
+      "id": "measured-doubled-internal-space",
+      "note": "measured pair in the last run",
+      "input": "FLORES  MALLQUI MAYU VICENT",
+      "expected": "FLORES MALLQUI MAYU VICENT"
+    },
+    {
+      "id": "measured-trailing-space",
+      "note": "measured pair in the last run",
+      "input": "MELENDEZ MARTINEZ YAMIR ALEXANDER ",
+      "expected": "MELENDEZ MARTINEZ YAMIR ALEXANDER"
+    },
+    {
+      "id": "measured-both-defects",
+      "note": "measured pair: doubled internal space AND a trailing space",
+      "input": "BERROCAL INOCENTE  JHON FRANKLIN ",
+      "expected": "BERROCAL INOCENTE JHON FRANKLIN"
+    },
+    {
+      "id": "measured-enye-and-multiple-spaces",
+      "note": "measured pair: N-tilde must survive - PENA and PEÑA are different surnames",
+      "input": "MARIÑO CAJAS  JEAN   PIERO",
+      "expected": "MARIÑO CAJAS JEAN PIERO"
+    },
+    {
+      "id": "case-folding",
+      "note": "the template's column E is upper-cased, so the key is too",
+      "input": "flores quispe juan carlos",
+      "expected": "FLORES QUISPE JUAN CARLOS"
+    },
+    {
+      "id": "embedded-crlf",
+      "note": "03 §2.1: `_x000d__x000a_` prefixes are real in this data",
+      "input": "\r\nMCORP  SAC\t",
+      "expected": "MCORP SAC"
+    },
+    {
+      "id": "comma-convention-preserved",
+      "note": "BUG-25: the comma convention is inconsistent but unfixable in code - do not touch it",
+      "input": "JAVIER CARHUAVILCA, LUIS ALBERTO",
+      "expected": "JAVIER CARHUAVILCA, LUIS ALBERTO"
+    },
+    {
+      "id": "nbsp-is-whitespace",
+      "input": "CARRERA VALENTIN LUIS HERMINIO",
+      "expected": "CARRERA VALENTIN LUIS HERMINIO"
+    },
+    {
+      "id": "decomposed-enye-is-nfc-normalized",
+      "note": "N + combining tilde and the precomposed N-tilde must produce ONE key",
+      "input": "MARIÑO CAJAS JEAN PIERO",
+      "expected": "MARIÑO CAJAS JEAN PIERO"
+    },
+    {
+      "id": "null",
+      "input": null,
+      "expected": ""
+    },
+    {
+      "id": "empty",
+      "input": "   ",
+      "expected": ""
+    }
+  ],
+  "personKey": [
+    {
+      "id": "name-mode-collapses-trailing-space",
+      "record": {
+        "APELLIDOS Y NOMBRES": "HUARCAYA COCCHE JESUS ",
+        "Nro. DNI / CE": "41876311"
+      },
+      "mode": "name",
+      "expected": "HUARCAYA COCCHE JESUS",
+      "expectedBasis": "name",
+      "expectedFallback": false
+    },
+    {
+      "id": "name-mode-ignores-the-dni",
+      "note": "same person, no DNI: still one key in name mode",
+      "record": {
+        "APELLIDOS Y NOMBRES": "HUARCAYA COCCHE JESUS",
+        "Nro. DNI / CE": null
+      },
+      "mode": "name",
+      "expected": "HUARCAYA COCCHE JESUS",
+      "expectedBasis": "name",
+      "expectedFallback": false
+    },
+    {
+      "id": "name-mode-no-name",
+      "record": {
+        "APELLIDOS Y NOMBRES": "",
+        "Nro. DNI / CE": "41876311"
+      },
+      "mode": "name",
+      "expected": "",
+      "expectedBasis": null,
+      "expectedFallback": false
+    },
+    {
+      "id": "dni-mode-uses-the-dni",
+      "record": {
+        "APELLIDOS Y NOMBRES": "HUARCAYA COCCHE JESUS ",
+        "Nro. DNI / CE": "41876311"
+      },
+      "mode": "dni",
+      "expected": "41876311",
+      "expectedBasis": "dni",
+      "expectedFallback": false
+    },
+    {
+      "id": "dni-mode-numeric-cell-is-text-keyed",
+      "note": "the number 41876311 and the text 41876311 are the same person",
+      "record": {
+        "APELLIDOS Y NOMBRES": "HUARCAYA COCCHE JESUS",
+        "Nro. DNI / CE": 41876311
+      },
+      "mode": "dni",
+      "expected": "41876311",
+      "expectedBasis": "dni",
+      "expectedFallback": false
+    },
+    {
+      "id": "dni-mode-leading-zero-casualty-keys-on-the-repaired-value",
+      "record": {
+        "APELLIDOS Y NOMBRES": "ALGUIEN SIN CERO",
+        "Nro. DNI / CE": 9994533
+      },
+      "mode": "dni",
+      "expected": "09994533",
+      "expectedBasis": "dni",
+      "expectedFallback": false
+    },
+    {
+      "id": "dni-mode-ce-keys-on-the-ce",
+      "record": {
+        "APELLIDOS Y NOMBRES": "EXTRANJERO EJEMPLO",
+        "Nro. DNI / CE": "001079894"
+      },
+      "mode": "dni",
+      "expected": "001079894",
+      "expectedBasis": "dni",
+      "expectedFallback": false
+    },
+    {
+      "id": "dni-mode-falls-back-to-the-name",
+      "note": "723 of 5,065 rows - a pure DNI key would collapse all of them into one person",
+      "record": {
+        "APELLIDOS Y NOMBRES": "MELENDEZ MARTINEZ YAMIR ALEXANDER ",
+        "Nro. DNI / CE": null
+      },
+      "mode": "dni",
+      "expected": "MELENDEZ MARTINEZ YAMIR ALEXANDER",
+      "expectedBasis": "name",
+      "expectedFallback": true
+    },
+    {
+      "id": "dni-mode-falls-back-on-whitespace-only-dni",
+      "record": {
+        "APELLIDOS Y NOMBRES": "FLORES  MALLQUI MAYU VICENT",
+        "Nro. DNI / CE": "   "
+      },
+      "mode": "dni",
+      "expected": "FLORES MALLQUI MAYU VICENT",
+      "expectedBasis": "name",
+      "expectedFallback": true
+    },
+    {
+      "id": "dni-mode-no-identifier-at-all",
+      "note": "10 rows in the last run have neither. The empty key must never be collapsed on.",
+      "record": {
+        "APELLIDOS Y NOMBRES": null,
+        "Nro. DNI / CE": null
+      },
+      "mode": "dni",
+      "expected": "",
+      "expectedBasis": null,
+      "expectedFallback": true
+    },
+    {
+      "id": "dni-mode-missing-fields-entirely",
+      "note": "defval:null is mandatory upstream, but the key must not explode if a key is simply absent",
+      "record": {},
+      "mode": "dni",
+      "expected": "",
+      "expectedBasis": null,
+      "expectedFallback": true
+    }
+  ],
+  "rucCorpus": {
+    "note": "The 146 distinct non-blank trimmed RUC values of src/ReporteConsolidado.xlsx (4,406 populated cells, 148 distinct raw, 147 trimmed). 03 §5.1, 04 §H and 05 §3 Phase 2 task 6 all quote 122 pass / 23 fail the check digit / 1 fails the format check; this table is that measurement, committed.",
+    "pass": [
+      "10416900774",
+      "20100180562",
+      "20100568617",
+      "20101105211",
+      "20122098274",
+      "20253881438",
+      "20295734681",
+      "20297543653",
+      "20329545459",
+      "20332273532",
+      "20373008533",
+      "20389600831",
+      "20431084172",
+      "20451703901",
+      "20471333604",
+      "20477792864",
+      "20477857826",
+      "20492221571",
+      "20501911501",
+      "20504039120",
+      "20506662711",
+      "20508430681",
+      "20509051527",
+      "20512017526",
+      "20514431281",
+      "20514849910",
+      "20516004879",
+      "20516377047",
+      "20517311741",
+      "20518153278",
+      "20518513665",
+      "20518531485",
+      "20521130327",
+      "20521258391",
+      "20523293533",
+      "20523574036",
+      "20523802861",
+      "20523816145",
+      "20524172365",
+      "20524172373",
+      "20524273803",
+      "20524279160",
+      "20538586197",
+      "20544798830",
+      "20545680883",
+      "20547422407",
+      "20548389489",
+      "20548820929",
+      "20549351027",
+      "20550163480",
+      "20550487200",
+      "20550778514",
+      "20551663079",
+      "20552282214",
+      "20552381115",
+      "20554431578",
+      "20554579133",
+      "20555542187",
+      "20555684721",
+      "20555946431",
+      "20556570681",
+      "20557447181",
+      "20562668871",
+      "20562719700",
+      "20563150808",
+      "20565210620",
+      "20566343631",
+      "20600111354",
+      "20600172531",
+      "20600373863",
+      "20600375254",
+      "20600407610",
+      "20600507355",
+      "20600535634",
+      "20600579054",
+      "20600666666",
+      "20600738047",
+      "20600786360",
+      "20601010128",
+      "20601277604",
+      "20601322456",
+      "20601668018",
+      "20601724112",
+      "20601965985",
+      "20602042201",
+      "20602213227",
+      "20602553605",
+      "20602677126",
+      "20602931511",
+      "20603070446",
+      "20603245246",
+      "20603315201",
+      "20603370253",
+      "20603387504",
+      "20603607202",
+      "20603902506",
+      "20603966695",
+      "20604191883",
+      "20604532940",
+      "20604695903",
+      "20604796424",
+      "20604911665",
+      "20605090789",
+      "20605435620",
+      "20605470719",
+      "20606574879",
+      "20606991062",
+      "20607390640",
+      "20608171941",
+      "20608368796",
+      "20608553496",
+      "20608643070",
+      "20608901567",
+      "20609201798",
+      "20609443015",
+      "20609892189",
+      "20610942564",
+      "20611095547",
+      "20611317248",
+      "20613802453",
+      "20613927051",
+      "20614544563"
+    ],
+    "failCheckDigit": [
+      "20100180563",
+      "20504039123",
+      "20504039125",
+      "20504039127",
+      "20504039130",
+      "20512017527",
+      "20512017528",
+      "20512017529",
+      "20514849911",
+      "20521937532",
+      "20524172366",
+      "20524172367",
+      "20524172368",
+      "20524172369",
+      "20524172370",
+      "20524172371",
+      "20524172372",
+      "20524172374",
+      "20552282215",
+      "20600111355",
+      "20600172533",
+      "20600666667",
+      "20600666668"
+    ],
+    "failFormat": [
+      "71514158"
+    ]
+  }
+}

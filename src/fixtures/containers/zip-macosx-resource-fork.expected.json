@@ -1,0 +1,43 @@
+{
+  "fixture": "containers/zip-macosx-resource-fork.zip",
+  "kind": "zip",
+  "pathology": "a macOS zip carrying a __MACOSX/ tree and a ._ resource fork beside the real workbook",
+  "spec": [
+    "03 §1.1",
+    "BUG-34"
+  ],
+  "period": "2026-02",
+  "extract": {
+    "entries": 6,
+    "extracted": 1,
+    "directories": 1,
+    "skipped": {
+      "macosx": 4,
+      "lockfile": 0,
+      "nonXlsx": 0
+    },
+    "issues": [
+      {
+        "code": "SKIPPED_MACOSX",
+        "severity": "INFO",
+        "count": 1
+      }
+    ]
+  },
+  "walk": {
+    "records": [
+      {
+        "subcontratista": "SUBCONTRATA MAC",
+        "archivo": "lista.xlsx"
+      }
+    ],
+    "summary": {
+      "wrapper": false,
+      "topLevelFolders": 1,
+      "foldersOk": 1,
+      "foldersFailed": 0,
+      "looseFiles": 0
+    },
+    "issues": []
+  }
+}

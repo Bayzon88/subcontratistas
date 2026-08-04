@@ -1,0 +1,635 @@
+{
+  "_readme": [
+    "Case table for src/pipeline/text.js, driven by src/test/text.test.js.",
+    "Every `input` marked with a `source` is a value MEASURED in the real corpus:",
+    "  RC   = src/ReporteConsolidado.xlsx!Cuadro (the last real run, 5,065 rows)",
+    "  PC   = src/template.xlsx!xl/pivotCache/pivotCacheDefinition*.xml (the accumulated cache)",
+    "  H1   = src/template.xlsx!Hoja1!A2:B61 (the distrito -> Zona de Influencia table)",
+    "  PLAN = quoted verbatim in rework-plan/03-expected-output.md",
+    "`expectedIssue` is the issues.js CODE that schema.js must raise for this value:",
+    "TEXT_NORMALIZED when the normalization altered the text, null when it did not.",
+    "Inputs that JSON cannot express (undefined, NaN, Date, objects) live in the .test.js."
+  ],
+
+  "normalizeText": [
+    {
+      "name": "leading space on a contratista - one of the 352 spellings for ~84 companies",
+      "source": "PC / PLAN",
+      "input": " CLJ CONTRUCTORA SAC",
+      "uppercase": false,
+      "expected": "CLJ CONTRUCTORA SAC",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "escaped CRLF prefix - the MCORP SAC case named in the plan",
+      "source": "PC / PLAN",
+      "input": "_x000d__x000a_MCORP SAC",
+      "uppercase": false,
+      "expected": "MCORP SAC",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "clean twin of the MCORP case - must be untouched so the two fold together",
+      "source": "PC",
+      "input": "MCORP SAC",
+      "uppercase": false,
+      "expected": "MCORP SAC",
+      "expectedIssue": null
+    },
+    {
+      "name": "escaped CRLF mid-value - must become a SPACE, never nothing",
+      "source": "PC",
+      "input": "GM Y M GENERAL SOLUTIONS_x000d__x000a_AND CONSULTING S.A.C",
+      "uppercase": false,
+      "expected": "GM Y M GENERAL SOLUTIONS AND CONSULTING S.A.C",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "real LF mid-value - same company, unescaped form in the consolidated sheet",
+      "source": "RC",
+      "input": "GM Y M GENERAL SOLUTIONS\nAND CONSULTING S.A.C",
+      "uppercase": false,
+      "expected": "GM Y M GENERAL SOLUTIONS AND CONSULTING S.A.C",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "doubled internal space in a company name",
+      "source": "RC",
+      "input": "BK MODULAR  S.A.C",
+      "uppercase": false,
+      "expected": "BK MODULAR S.A.C",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "doubled internal space around a hyphen",
+      "source": "RC",
+      "input": "EPOS S.A. -  SUCURSAL DEL PERU",
+      "uppercase": false,
+      "expected": "EPOS S.A. - SUCURSAL DEL PERU",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "trailing space on a contratista",
+      "source": "RC",
+      "input": "CONSORCIO METRO LA COLECTORA ",
+      "uppercase": false,
+      "expected": "CONSORCIO METRO LA COLECTORA",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "trailing space after an abbreviation dot",
+      "source": "RC",
+      "input": "COBRA PERU S.A ",
+      "uppercase": false,
+      "expected": "COBRA PERU S.A",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "leading space, dotted abbreviation",
+      "source": "RC",
+      "input": " SAEG PERU S.A.",
+      "uppercase": false,
+      "expected": "SAEG PERU S.A.",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "punctuation residue is NOT repaired - S.A.C stays S.A.C (Sheet1's job)",
+      "source": "PC / PLAN",
+      "input": "ACIS PROCESS S.A.C",
+      "uppercase": false,
+      "expected": "ACIS PROCESS S.A.C",
+      "expectedIssue": null
+    },
+    {
+      "name": "punctuation residue is NOT repaired - S.A.C. stays S.A.C.",
+      "source": "PC / PLAN",
+      "input": "ACIS PROCESS S.A.C.",
+      "uppercase": false,
+      "expected": "ACIS PROCESS S.A.C.",
+      "expectedIssue": null
+    },
+    {
+      "name": "spelling residue is NOT repaired - CONSTRUCTORA vs CONTRUCTORA stay apart",
+      "source": "PC",
+      "input": "CLJ CONSTRUCTORA SAC",
+      "uppercase": false,
+      "expected": "CLJ CONSTRUCTORA SAC",
+      "expectedIssue": null
+    },
+
+    {
+      "name": "NACIONALIDAD spelling 1 of 7 - PERUANA (2,398 rows)",
+      "source": "RC / PLAN",
+      "input": "PERUANA",
+      "uppercase": true,
+      "expected": "PERUANA",
+      "expectedIssue": null
+    },
+    {
+      "name": "NACIONALIDAD spelling 2 of 7 - Peruano (1,262 rows)",
+      "source": "RC / PLAN",
+      "input": "Peruano",
+      "uppercase": true,
+      "expected": "PERUANO",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "NACIONALIDAD spelling 3 of 7 - PERUANO (600 rows)",
+      "source": "RC / PLAN",
+      "input": "PERUANO",
+      "uppercase": true,
+      "expected": "PERUANO",
+      "expectedIssue": null
+    },
+    {
+      "name": "NACIONALIDAD spelling 4 of 7 - Peruana (403 rows)",
+      "source": "RC / PLAN",
+      "input": "Peruana",
+      "uppercase": true,
+      "expected": "PERUANA",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "NACIONALIDAD spelling 5 of 7 - trailing space (131 rows)",
+      "source": "RC / PLAN",
+      "input": "PERUANA ",
+      "uppercase": true,
+      "expected": "PERUANA",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "NACIONALIDAD spelling 6 of 7 - peruana (76 rows)",
+      "source": "RC / PLAN",
+      "input": "peruana",
+      "uppercase": true,
+      "expected": "PERUANA",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "NACIONALIDAD spelling 7 of 7 - PERUANO trailing space (75 rows)",
+      "source": "RC / PLAN",
+      "input": "PERUANO ",
+      "uppercase": true,
+      "expected": "PERUANO",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "NACIONALIDAD - other trailing-space spellings measured in the same column",
+      "source": "RC",
+      "input": "VENEZOLANO ",
+      "uppercase": true,
+      "expected": "VENEZOLANO",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+
+    {
+      "name": "DISTRITO doubled internal space - the exact case Excel TRIM cannot fix (Hoja1 r47)",
+      "source": "H1 / PLAN",
+      "input": "CERCADO DE  LIMA",
+      "uppercase": false,
+      "expected": "CERCADO DE LIMA",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "DISTRITO doubled internal space - survives Excel TRIM, misses the VLOOKUP",
+      "source": "RC",
+      "input": "SAN JUAN DE  MIRAFLORES",
+      "uppercase": false,
+      "expected": "SAN JUAN DE MIRAFLORES",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "DISTRITO doubled internal space, abbreviated form",
+      "source": "RC",
+      "input": "STA  ANITA",
+      "uppercase": false,
+      "expected": "STA ANITA",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "DISTRITO leading newline",
+      "source": "RC",
+      "input": "\nSAN MARTIN DE PORRES",
+      "uppercase": false,
+      "expected": "SAN MARTIN DE PORRES",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "DISTRITO mixed case is NOT uppercased - VLOOKUP is case-insensitive (§2.2)",
+      "source": "RC",
+      "input": " Santa Anita ",
+      "uppercase": false,
+      "expected": "Santa Anita",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "DISTRITO accent survives - BREÑA with tilde is a real district",
+      "source": "RC / H1",
+      "input": "BREÑA ",
+      "uppercase": false,
+      "expected": "BREÑA",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "DISTRITO trailing space on the Hoja1 zone label SAN LUIS (BUG-29)",
+      "source": "H1",
+      "input": "SAN LUIS ",
+      "uppercase": false,
+      "expected": "SAN LUIS",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "DISTRITO trailing double space on a province-qualified district",
+      "source": "RC",
+      "input": "HUAROCHIRI-SAN ANTONIO  ",
+      "uppercase": false,
+      "expected": "HUAROCHIRI-SAN ANTONIO",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "DISTRITO trailing NBSP - Excel TRIM does not remove U+00A0 at all",
+      "source": "RC",
+      "input": "CHORRILLOS ",
+      "uppercase": false,
+      "expected": "CHORRILLOS",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "DISTRITO holding a full address is left alone apart from whitespace",
+      "source": "RC",
+      "input": "CALLE 27 MZ.V LT.4 URB.EL TREBOL 3ERA ETAPA LIMA-LIMA-LOS OLIVOS  ",
+      "uppercase": false,
+      "expected": "CALLE 27 MZ.V LT.4 URB.EL TREBOL 3ERA ETAPA LIMA-LIMA-LOS OLIVOS",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+
+    {
+      "name": "NOMBRES leading space - the dedupe key case from BUG-24",
+      "source": "RC",
+      "input": " CASAVILCA RAMOS EDGAR BEQUER",
+      "uppercase": true,
+      "expected": "CASAVILCA RAMOS EDGAR BEQUER",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "NOMBRES trailing space - the exact pair the plan cites as two people",
+      "source": "PLAN",
+      "input": "HUARCAYA COCCHE JESUS ",
+      "uppercase": true,
+      "expected": "HUARCAYA COCCHE JESUS",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "NOMBRES clean twin of the above - both must land on one key",
+      "source": "PLAN",
+      "input": "HUARCAYA COCCHE JESUS",
+      "uppercase": true,
+      "expected": "HUARCAYA COCCHE JESUS",
+      "expectedIssue": null
+    },
+    {
+      "name": "NOMBRES trailing TAB",
+      "source": "RC",
+      "input": "BELTRAN ROMERO CHRISTIAN GIANFRANCO\t",
+      "uppercase": true,
+      "expected": "BELTRAN ROMERO CHRISTIAN GIANFRANCO",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "NOMBRES doubled internal space plus trailing space",
+      "source": "RC",
+      "input": "RAFAEL YAURI  GREGORIO ALEXANDER ",
+      "uppercase": true,
+      "expected": "RAFAEL YAURI GREGORIO ALEXANDER",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "NOMBRES NBSP used as the word separator (measured 48x)",
+      "source": "RC",
+      "input": "VEGA MELGAREJO JHON MILTON ",
+      "uppercase": true,
+      "expected": "VEGA MELGAREJO JHON MILTON",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "NOMBRES NBSP followed by a real space",
+      "source": "RC",
+      "input": "MILLA PANAIFO  MARCOS ADRIAN",
+      "uppercase": true,
+      "expected": "MILLA PANAIFO MARCOS ADRIAN",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "NOMBRES accent survives uppercasing - LOBATÓN keeps its acute",
+      "source": "RC",
+      "input": "MIRELLES LOBATÓN JUAN CARLOS ",
+      "uppercase": true,
+      "expected": "MIRELLES LOBATÓN JUAN CARLOS",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "NOMBRES tilde survives uppercasing - NUÑEZ keeps its Ñ",
+      "source": "RC",
+      "input": "ALTAMIRANO NUÑEZ DINO ",
+      "uppercase": true,
+      "expected": "ALTAMIRANO NUÑEZ DINO",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "NOMBRES lowercase tilde uppercases to Ñ, not to N",
+      "source": "RC",
+      "input": "roldan briceño jhoselyn katiuska ",
+      "uppercase": true,
+      "expected": "ROLDAN BRICEÑO JHOSELYN KATIUSKA",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "NOMBRES three escaped CRLFs inside one name",
+      "source": "PC",
+      "input": "BARTOLO_x000d__x000a_DE LA_x000d__x000a_CRUZ _x000d__x000a_BRIAN",
+      "uppercase": true,
+      "expected": "BARTOLO DE LA CRUZ BRIAN",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "NOMBRES leading space then escaped CRLF",
+      "source": "PC",
+      "input": " _x000d__x000a_DE LA CRUZ PAIMA RENZO",
+      "uppercase": true,
+      "expected": "DE LA CRUZ PAIMA RENZO",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "NOMBRES trailing escaped CRLF",
+      "source": "PC",
+      "input": "MONCADA VAIS ANAIS STEPHANY_x000d__x000a_",
+      "uppercase": true,
+      "expected": "MONCADA VAIS ANAIS STEPHANY",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "NOMBRES trailing real LF",
+      "source": "RC",
+      "input": "MONJA MAYANGA YOVANNI \n",
+      "uppercase": true,
+      "expected": "MONJA MAYANGA YOVANNI",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "NOMBRES comma convention is preserved verbatim - not a whitespace problem",
+      "source": "RC / PLAN",
+      "input": "JAVIER CARHUAVILCA, LUIS ALBERTO",
+      "uppercase": true,
+      "expected": "JAVIER CARHUAVILCA, LUIS ALBERTO",
+      "expectedIssue": null
+    },
+
+    {
+      "name": "CARGO escaped TAB prefix",
+      "source": "PC",
+      "input": "_x0009_CAPATAZ",
+      "uppercase": false,
+      "expected": "CAPATAZ",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "CARGO real TAB prefix",
+      "source": "RC",
+      "input": "\tOFICIAL ALBAÑIL",
+      "uppercase": false,
+      "expected": "OFICIAL ALBAÑIL",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "CARGO NBSP as the word separator - two pivot labels for one job title",
+      "source": "RC",
+      "input": "OPERARIO ELECTRICISTA",
+      "uppercase": false,
+      "expected": "OPERARIO ELECTRICISTA",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "CARGO NBSP plus space - the third spelling of the same job title",
+      "source": "RC",
+      "input": "OPERARIO  ELECTRICISTA",
+      "uppercase": false,
+      "expected": "OPERARIO ELECTRICISTA",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "CARGO leading and trailing NBSP",
+      "source": "RC",
+      "input": " EMPLEADO /SUPERVISOR SST ",
+      "uppercase": false,
+      "expected": "EMPLEADO /SUPERVISOR SST",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "CARGO multi-line machine list wrapped with escaped CRLFs",
+      "source": "PC",
+      "input": "OPERADOR EXCAVADORA - RETROEXCAVADORA -_x000d__x000a_TELEHANDLER - MINICARGADOR - MINIEXCAVADORA",
+      "uppercase": false,
+      "expected": "OPERADOR EXCAVADORA - RETROEXCAVADORA - TELEHANDLER - MINICARGADOR - MINIEXCAVADORA",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "CARGO multi-line machine list with real LFs and trailing space",
+      "source": "RC",
+      "input": "OPERADOR DE ROBOT SHOCRETERO - TELEHANDLER \nCARMIX - MINICARGADOR - MINIEXCAVADORA – MANLIFT - \nRODILLO ",
+      "uppercase": false,
+      "expected": "OPERADOR DE ROBOT SHOCRETERO - TELEHANDLER CARMIX - MINICARGADOR - MINIEXCAVADORA – MANLIFT - RODILLO",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "CARGO trailing escaped LF, accent preserved",
+      "source": "PC",
+      "input": "ASISTENTE DE PRODUCCIÓN_x000a_",
+      "uppercase": false,
+      "expected": "ASISTENTE DE PRODUCCIÓN",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "CARGO uppercase-escape spelling _x000D_ - Excel writes the hex uppercase too",
+      "source": "PC",
+      "input": "SUPERVISOR SST_x000D__x000A_",
+      "uppercase": false,
+      "expected": "SUPERVISOR SST",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "CARGO trailing space, the plain majority case",
+      "source": "PC",
+      "input": "TOPOGRAFO ",
+      "uppercase": false,
+      "expected": "TOPOGRAFO",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+
+    {
+      "name": "already clean, no uppercase - idempotence baseline",
+      "source": "RC",
+      "input": "SOLETANCHE BACHY PERU SAC",
+      "uppercase": false,
+      "expected": "SOLETANCHE BACHY PERU SAC",
+      "expectedIssue": null
+    },
+    {
+      "name": "empty string - nothing to normalize, no issue",
+      "input": "",
+      "uppercase": false,
+      "expected": null,
+      "expectedIssue": null
+    },
+    {
+      "name": "whitespace-only becomes null and IS reported",
+      "input": "   ",
+      "uppercase": false,
+      "expected": null,
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "NBSP-only becomes null and IS reported",
+      "input": "  ",
+      "uppercase": false,
+      "expected": null,
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "escape-only becomes null and IS reported",
+      "input": "_x000d__x000a_",
+      "uppercase": false,
+      "expected": null,
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "null in, null out, silently - schema.js owns requiredness",
+      "input": null,
+      "uppercase": false,
+      "expected": null,
+      "expectedIssue": null
+    },
+    {
+      "name": "a RUC landing in a text column - the 643-row header-shift block (§2.3)",
+      "source": "RC",
+      "input": 20101155588,
+      "uppercase": true,
+      "expected": "20101155588",
+      "expectedIssue": null
+    },
+    {
+      "name": "BOM prefix is whitespace under JS \\s and is stripped",
+      "input": "﻿MCORP SAC",
+      "uppercase": false,
+      "expected": "MCORP SAC",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "a non-whitespace OOXML escape is NOT touched - it may be real text",
+      "input": "ACERO_x0041_ SAC",
+      "uppercase": false,
+      "expected": "ACERO_x0041_ SAC",
+      "expectedIssue": null
+    }
+  ],
+
+  "normalizeForColumn": [
+    {
+      "name": "EMPRESA is collapsed but not uppercased",
+      "source": "RC",
+      "column": "EMPRESA",
+      "input": "Q-ENERGY PERU S.A.C. ",
+      "expected": "Q-ENERGY PERU S.A.C.",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "CONTRATISTA PRNCIPAL (the load-bearing typo) is collapsed but not uppercased",
+      "source": "PC",
+      "column": "CONTRATISTA PRNCIPAL",
+      "input": " CLJ CONTRUCTORA SAC",
+      "expected": "CLJ CONTRUCTORA SAC",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "APELLIDOS Y NOMBRES is uppercased",
+      "source": "RC",
+      "column": "APELLIDOS Y NOMBRES",
+      "input": "Milla Panaifo  Marcos Adrian",
+      "expected": "MILLA PANAIFO MARCOS ADRIAN",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "NACIONALIDAD is uppercased even though it is not in TEXT_COLUMNS",
+      "source": "RC",
+      "column": "NACIONALIDAD",
+      "input": "peruana",
+      "expected": "PERUANA",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "DISTRITO SEGÚN DNI is collapsed and NOT uppercased (§2.2)",
+      "source": "RC",
+      "column": "DISTRITO SEGÚN DNI",
+      "input": " Santa Anita ",
+      "expected": "Santa Anita",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "TITULO DE PUESTO/CARGO is collapsed and NOT uppercased",
+      "source": "RC",
+      "column": "TITULO DE PUESTO/CARGO",
+      "input": "OPERARIO ELECTRICISTA",
+      "expected": "OPERARIO ELECTRICISTA",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "DOMICILIO DE TRABAJADOR is collapsed - trailing NBSP measured 21x",
+      "source": "RC",
+      "column": "DOMICILIO DE TRABAJADOR",
+      "input": "JIRON TACNA NORTE 380 -CALLAO-CALLAO  ",
+      "expected": "JIRON TACNA NORTE 380 -CALLAO-CALLAO",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "NOMBRE DE OBRA is collapsed - carried, never consumed, but still cleaned",
+      "column": "NOMBRE DE OBRA DONDE ESTA ASIGNADO DURANTE EL MES REPORTADO",
+      "input": "OBRA  METRO\nLIMA ",
+      "expected": "OBRA METRO LIMA",
+      "expectedIssue": "TEXT_NORMALIZED"
+    },
+    {
+      "name": "RUC is NOT this module's column - passes through untouched, leading zeros intact",
+      "column": "RUC",
+      "input": "  20101155588  ",
+      "expected": "  20101155588  ",
+      "expectedIssue": null
+    },
+    {
+      "name": "Nro. DNI / CE is NOT this module's column - identity.js owns it",
+      "column": "Nro. DNI / CE",
+      "input": "09994533",
+      "expected": "09994533",
+      "expectedIssue": null
+    },
+    {
+      "name": "FECHA NACIMIENTO is NOT this module's column - dates.js owns it",
+      "column": "FECHA NACIMIENTO",
+      "input": " 04/07/1994 ",
+      "expected": " 04/07/1994 ",
+      "expectedIssue": null
+    },
+    {
+      "name": "GENERO is NOT this module's column - codes.js owns it, including the case-fold",
+      "column": "GENERO",
+      "input": " Masculino ",
+      "expected": " Masculino ",
+      "expectedIssue": null
+    },
+    {
+      "name": "HPT is NOT this module's column - numeric, schema.js owns it",
+      "column": "HPT",
+      "input": 176,
+      "expected": 176,
+      "expectedIssue": null
+    }
+  ]
+}

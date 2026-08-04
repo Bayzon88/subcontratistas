@@ -1,0 +1,37 @@
+{
+  "fixture": "containers/folder-zero-xlsx",
+  "kind": "folder",
+  "pathology": "one subcontratista folder holds ZERO .xlsx - NOT \"no workers this month\"",
+  "spec": [
+    "03 §1.1"
+  ],
+  "period": "2026-02",
+  "extract": null,
+  "walk": {
+    "records": [
+      {
+        "subcontratista": "SUBCONTRATA BUENA",
+        "archivo": "lista.xlsx"
+      }
+    ],
+    "summary": {
+      "wrapper": false,
+      "topLevelFolders": 2,
+      "foldersOk": 1,
+      "foldersFailed": 1,
+      "looseFiles": 0
+    },
+    "issues": [
+      {
+        "code": "FOLDER_NO_XLSX",
+        "severity": "FAILED",
+        "count": 1
+      },
+      {
+        "code": "SKIPPED_NON_XLSX",
+        "severity": "INFO",
+        "count": 1
+      }
+    ]
+  }
+}

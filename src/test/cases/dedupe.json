@@ -1,0 +1,573 @@
+{
+  "_readme": [
+    "Case table for src/pipeline/dedupe.js (05 §3 Phase 3 tasks 7-8, 03 §2).",
+    "Records are written in the COMPACT form described by fieldMap: every key is expanded",
+    "to its canonical column and every unmentioned canonical column is null, so a case",
+    "shows only the fields it is about. sub/archivo/hoja/fila become record.provenance.",
+    "The `keyOrder` section is different on purpose: those records are LITERAL, with all 18",
+    "canonical columns spelled out, because the property under test is JSON key INSERTION",
+    "ORDER (BUG-21) and a builder would destroy it.",
+    "Everything marked \"measured\" comes from src/ReporteConsolidado.xlsx - the last real run."
+  ],
+
+  "fieldMap": {
+    "ruc": "RUC",
+    "empresa": "EMPRESA",
+    "contratista": "CONTRATISTA PRNCIPAL",
+    "dni": "Nro. DNI / CE",
+    "nombre": "APELLIDOS Y NOMBRES",
+    "nacimiento": "FECHA NACIMIENTO",
+    "tipo": "TIPO TRABAJADOR",
+    "cargo": "TITULO DE PUESTO/CARGO",
+    "obra": "NOMBRE DE OBRA DONDE ESTA ASIGNADO DURANTE EL MES REPORTADO",
+    "domicilio": "DOMICILIO DE TRABAJADOR",
+    "distrito": "DISTRITO SEGÚN DNI",
+    "genero": "GENERO",
+    "cese": "FECHA CESE/BAJA",
+    "nacionalidad": "NACIONALIDAD",
+    "inicio": "FECHA INICIO DE LABORES EN OBRA",
+    "estado": "ESTADO",
+    "contrato": "TIPO DE CONTRATO LABORAL",
+    "hpt": "HPT"
+  },
+
+  "keyOrder": [
+    {
+      "id": "bug21-two-workbooks-different-column-order",
+      "note": "THE regression case. Two byte-identical workers from two workbooks whose columns are in different order. JSON.stringify serializes in key-insertion order, so the two rows produce different strings and the old Set-based dedupe keeps both. Keyed on personKey they are one person. The test also asserts the two JSON strings really do differ, so the case cannot rot into a tautology.",
+      "mode": "name",
+      "records": [
+        {
+          "RUC": "20604191883",
+          "EMPRESA": "ONLINK S.A.C.",
+          "CONTRATISTA PRNCIPAL": "CJV",
+          "Nro. DNI / CE": "43440695",
+          "APELLIDOS Y NOMBRES": "CRISTOBAL LOYOLA ESLY OBET",
+          "FECHA NACIMIENTO": 33604,
+          "TIPO TRABAJADOR": 1,
+          "TITULO DE PUESTO/CARGO": "OPERARIO ELECTRICISTA",
+          "NOMBRE DE OBRA DONDE ESTA ASIGNADO DURANTE EL MES REPORTADO": "LINEA 2",
+          "DOMICILIO DE TRABAJADOR": "AV LOS ALAMOS 123",
+          "DISTRITO SEGÚN DNI": "ATE",
+          "GENERO": "masculino",
+          "FECHA CESE/BAJA": null,
+          "NACIONALIDAD": "PERUANA",
+          "FECHA INICIO DE LABORES EN OBRA": 45689,
+          "ESTADO": 1,
+          "TIPO DE CONTRATO LABORAL": 2,
+          "HPT": 192,
+          "provenance": { "subcontratista": "ONLINK SAC", "archivo": "onlink.xlsx", "hoja": "Cuadro", "filaOrigen": 12 }
+        },
+        {
+          "APELLIDOS Y NOMBRES": "CRISTOBAL LOYOLA ESLY OBET",
+          "Nro. DNI / CE": "43440695",
+          "HPT": 192,
+          "TIPO DE CONTRATO LABORAL": 2,
+          "ESTADO": 1,
+          "FECHA INICIO DE LABORES EN OBRA": 45689,
+          "NACIONALIDAD": "PERUANA",
+          "FECHA CESE/BAJA": null,
+          "GENERO": "masculino",
+          "DISTRITO SEGÚN DNI": "ATE",
+          "DOMICILIO DE TRABAJADOR": "AV LOS ALAMOS 123",
+          "NOMBRE DE OBRA DONDE ESTA ASIGNADO DURANTE EL MES REPORTADO": "LINEA 2",
+          "TITULO DE PUESTO/CARGO": "OPERARIO ELECTRICISTA",
+          "TIPO TRABAJADOR": 1,
+          "FECHA NACIMIENTO": 33604,
+          "CONTRATISTA PRNCIPAL": "CJV",
+          "EMPRESA": "ONLINK S.A.C.",
+          "RUC": "20604191883",
+          "provenance": { "subcontratista": "SOLETANCHE BACHY PERU SAC", "archivo": "soletanche.xlsx", "hoja": "Cuadro", "filaOrigen": 340 }
+        }
+      ],
+      "expected": {
+        "kept": 1,
+        "collapsedGroups": 1,
+        "rowsCollapsed": 1,
+        "cross": 1,
+        "keptSources": ["ONLINK SAC/onlink.xlsx:12"],
+        "conflictColumns": [],
+        "fieldsLost": [],
+        "issues": [{ "code": "DUPLICATE_COLLAPSED", "severity": "WARNING" }]
+      }
+    },
+    {
+      "id": "bug21-same-subcontratista-different-key-order",
+      "note": "The same key-order defect inside one workbook. Severity is INFO here, not WARNING: nothing crossed a company boundary, so this is a literal duplicate and collapsing it loses nothing.",
+      "mode": "name",
+      "records": [
+        {
+          "RUC": "20547422407",
+          "EMPRESA": "BM1 OBRAS Y SERVICIOS INDUSTRIALES SAC",
+          "Nro. DNI / CE": "70297207",
+          "APELLIDOS Y NOMBRES": "CORDOVA DIAZ MARIA CLEOFE",
+          "GENERO": "femenino",
+          "provenance": { "subcontratista": "BM1", "archivo": "bm1.xlsx", "hoja": "Cuadro", "filaOrigen": 7 }
+        },
+        {
+          "APELLIDOS Y NOMBRES": "CORDOVA DIAZ MARIA CLEOFE",
+          "GENERO": "femenino",
+          "Nro. DNI / CE": "70297207",
+          "EMPRESA": "BM1 OBRAS Y SERVICIOS INDUSTRIALES SAC",
+          "RUC": "20547422407",
+          "provenance": { "subcontratista": "BM1", "archivo": "bm1.xlsx", "hoja": "Cuadro", "filaOrigen": 41 }
+        }
+      ],
+      "expected": {
+        "kept": 1,
+        "collapsedGroups": 1,
+        "rowsCollapsed": 1,
+        "cross": 0,
+        "keptSources": ["BM1/bm1.xlsx:7"],
+        "conflictColumns": [],
+        "fieldsLost": [],
+        "issues": [{ "code": "DUPLICATE_COLLAPSED", "severity": "INFO" }]
+      }
+    }
+  ],
+
+  "cases": [
+    {
+      "id": "huarcaya-trailing-space",
+      "note": "BUG-25's own example: \"HUARCAYA COCCHE JESUS \" and \"HUARCAYA COCCHE JESUS\" are two people to the template's COUNTIF and one person to personKey.",
+      "input": [
+        { "nombre": "HUARCAYA COCCHE JESUS ", "dni": "41250321", "sub": "HUARCAYA SRL", "archivo": "h.xlsx", "hoja": "Cuadro", "fila": 4 },
+        { "nombre": "HUARCAYA COCCHE JESUS", "dni": "41250321", "sub": "HUARCAYA SRL", "archivo": "h.xlsx", "hoja": "Cuadro", "fila": 5 }
+      ],
+      "expected": {
+        "name": {
+          "kept": 1,
+          "collapsedGroups": 1,
+          "rowsCollapsed": 1,
+          "cross": 0,
+          "keptSources": ["HUARCAYA SRL/h.xlsx:4"],
+          "keys": ["HUARCAYA COCCHE JESUS"],
+          "issues": [{ "code": "DUPLICATE_COLLAPSED", "severity": "INFO" }]
+        }
+      }
+    },
+    {
+      "id": "measured-whitespace-name-variants",
+      "note": "measured: the whitespace pairs BUG-25 describes, verbatim from src/ReporteConsolidado.xlsx. 4,372 distinct raw names collapse to 4,358 exactly because of 14 pairs like these. MARIÑO CAJAS appears 3 times in the real file (1 with doubled spaces, 2 clean).",
+      "input": [
+        { "nombre": "MELENDEZ MARTINEZ YAMIR ALEXANDER ", "sub": "SUB A", "archivo": "a.xlsx", "fila": 2 },
+        { "nombre": "MELENDEZ MARTINEZ YAMIR ALEXANDER", "sub": "SUB A", "archivo": "a.xlsx", "fila": 3 },
+        { "nombre": "FLORES  MALLQUI MAYU VICENT", "sub": "SUB A", "archivo": "a.xlsx", "fila": 4 },
+        { "nombre": "FLORES MALLQUI MAYU VICENT", "sub": "SUB A", "archivo": "a.xlsx", "fila": 5 },
+        { "nombre": "BERROCAL INOCENTE  JHON FRANKLIN ", "sub": "SUB A", "archivo": "a.xlsx", "fila": 6 },
+        { "nombre": "BERROCAL INOCENTE JHON FRANKLIN", "sub": "SUB A", "archivo": "a.xlsx", "fila": 7 },
+        { "nombre": "MARIÑO CAJAS  JEAN   PIERO", "sub": "SUB A", "archivo": "a.xlsx", "fila": 8 },
+        { "nombre": "MARIÑO CAJAS JEAN PIERO", "sub": "SUB A", "archivo": "a.xlsx", "fila": 9 },
+        { "nombre": "MARIÑO CAJAS JEAN PIERO", "sub": "SUB A", "archivo": "a.xlsx", "fila": 10 }
+      ],
+      "expected": {
+        "name": {
+          "kept": 4,
+          "collapsedGroups": 4,
+          "rowsCollapsed": 5,
+          "cross": 0,
+          "keptSources": ["SUB A/a.xlsx:2", "SUB A/a.xlsx:4", "SUB A/a.xlsx:6", "SUB A/a.xlsx:8"],
+          "keys": [
+            "BERROCAL INOCENTE JHON FRANKLIN",
+            "FLORES MALLQUI MAYU VICENT",
+            "MARIÑO CAJAS JEAN PIERO",
+            "MELENDEZ MARTINEZ YAMIR ALEXANDER"
+          ],
+          "issues": [
+            { "code": "DUPLICATE_COLLAPSED", "severity": "INFO" },
+            { "code": "DUPLICATE_COLLAPSED", "severity": "INFO" },
+            { "code": "DUPLICATE_COLLAPSED", "severity": "INFO" },
+            { "code": "DUPLICATE_COLLAPSED", "severity": "INFO" }
+          ]
+        }
+      }
+    },
+    {
+      "id": "homonyms-different-dni",
+      "note": "Two genuine homonyms. Under \"name\" they are one person (which is what the template believes today, BUG-25) and the DNI conflict is reported so the operator can see the merge was suspicious. Under \"dni\" they stay two people. 3 duplicated name keys in the last run carry more than one distinct DNI.",
+      "input": [
+        { "nombre": "GARCIA LOPEZ JOSE", "dni": "10000001", "empresa": "ALFA SAC", "sub": "ALFA SAC", "archivo": "alfa.xlsx", "fila": 11 },
+        { "nombre": "GARCIA LOPEZ JOSE", "dni": "20000002", "empresa": "ALFA SAC", "sub": "ALFA SAC", "archivo": "alfa.xlsx", "fila": 12 }
+      ],
+      "expected": {
+        "name": {
+          "kept": 1,
+          "collapsedGroups": 1,
+          "rowsCollapsed": 1,
+          "cross": 0,
+          "keptSources": ["ALFA SAC/alfa.xlsx:11"],
+          "conflictColumns": ["Nro. DNI / CE"],
+          "issues": [{ "code": "DUPLICATE_COLLAPSED", "severity": "INFO" }]
+        },
+        "dni": {
+          "kept": 2,
+          "collapsedGroups": 0,
+          "rowsCollapsed": 0,
+          "cross": 0,
+          "keptSources": ["ALFA SAC/alfa.xlsx:11", "ALFA SAC/alfa.xlsx:12"],
+          "keys": ["10000001", "20000002"],
+          "issues": []
+        }
+      }
+    },
+    {
+      "id": "no-dni-falls-back-to-the-name",
+      "note": "723 of 5,065 rows had no DNI at all. A pure DNI key gives all of them the empty key and collapses them into one person - a fresh instance of the BUG-04 arithmetic. The fallback keeps them apart; a genuine repeat under the fallback key still collapses.",
+      "input": [
+        { "nombre": "QUISPE MAMANI ELENA", "sub": "SUB B", "archivo": "b.xlsx", "fila": 2 },
+        { "nombre": "TORRES VEGA MARIO", "sub": "SUB B", "archivo": "b.xlsx", "fila": 3 },
+        { "nombre": "SALAZAR DOMINGUEZ ALEXANDER", "sub": "SUB B", "archivo": "b.xlsx", "fila": 4 },
+        { "nombre": "QUISPE MAMANI ELENA", "sub": "SUB B", "archivo": "b.xlsx", "fila": 5 }
+      ],
+      "expected": {
+        "dni": {
+          "kept": 3,
+          "collapsedGroups": 1,
+          "rowsCollapsed": 1,
+          "cross": 0,
+          "keptSources": ["SUB B/b.xlsx:2", "SUB B/b.xlsx:3", "SUB B/b.xlsx:4"],
+          "fallbackKeys": 4,
+          "issues": [{ "code": "DUPLICATE_COLLAPSED", "severity": "INFO" }]
+        },
+        "name": {
+          "kept": 3,
+          "collapsedGroups": 1,
+          "rowsCollapsed": 1,
+          "cross": 0,
+          "fallbackKeys": 0,
+          "issues": [{ "code": "DUPLICATE_COLLAPSED", "severity": "INFO" }]
+        }
+      }
+    },
+    {
+      "id": "no-identity-at-all-never-collapses",
+      "note": "10 rows in the last run have neither a name nor a DNI. identity.js returns \"\" for them and callers MUST NOT collapse on an empty key - collapsing 10 unidentifiable workers into 1 is precisely the BUG-04 failure this rework exists to remove.",
+      "input": [
+        { "cargo": "OPERARIO", "sub": "SUB C", "archivo": "c.xlsx", "fila": 2 },
+        { "cargo": "AYUDANTE", "sub": "SUB C", "archivo": "c.xlsx", "fila": 3 },
+        { "cargo": "CAPATAZ", "sub": "SUB C", "archivo": "c.xlsx", "fila": 4 }
+      ],
+      "expected": {
+        "name": { "kept": 3, "collapsedGroups": 0, "rowsCollapsed": 0, "cross": 0, "withoutIdentity": 3, "issues": [] },
+        "dni": { "kept": 3, "collapsedGroups": 0, "rowsCollapsed": 0, "cross": 0, "withoutIdentity": 3, "issues": [] }
+      }
+    },
+    {
+      "id": "measured-header-shift-block",
+      "note": "measured (03 §2.3): 643 rows carry the RUC number 20101155588 in APELLIDOS Y NOMBRES, all from one subcontratista. schema.js rejects them before they reach here; this pins what dedupe would do if they ever did - one key, one survivor, and an itemised issue rather than a silent 643:1 collapse. The name arrives as a NUMBER, as it does in the real file.",
+      "input": [
+        { "nombre": 20101155588, "sub": "SUB DESPLAZADA", "archivo": "shift.xlsx", "fila": 2 },
+        { "nombre": 20101155588, "sub": "SUB DESPLAZADA", "archivo": "shift.xlsx", "fila": 3 },
+        { "nombre": 20101155588, "sub": "SUB DESPLAZADA", "archivo": "shift.xlsx", "fila": 4 },
+        { "nombre": 20101155588, "sub": "SUB DESPLAZADA", "archivo": "shift.xlsx", "fila": 5 },
+        { "nombre": 20101155588, "sub": "SUB DESPLAZADA", "archivo": "shift.xlsx", "fila": 6 }
+      ],
+      "expected": {
+        "name": {
+          "kept": 1,
+          "collapsedGroups": 1,
+          "rowsCollapsed": 4,
+          "cross": 0,
+          "keptSources": ["SUB DESPLAZADA/shift.xlsx:2"],
+          "keys": ["20101155588"],
+          "issues": [{ "code": "DUPLICATE_COLLAPSED", "severity": "INFO" }]
+        }
+      }
+    },
+    {
+      "id": "cross-subcontratista-is-a-business-fact",
+      "note": "measured shape: 24 name keys in the last run span more than one EMPRESA - e.g. CRISTOBAL LOYOLA ESLY OBET under ONLINK S.A.C. and SOLETANCHE BACHY PERU SAC with the same DNI. This is the Dos Subcontratas por Mes population, so the collapse is WARNING, not INFO, and EMPRESA/CONTRATISTA disagreement is itemised.",
+      "input": [
+        { "nombre": "CRISTOBAL LOYOLA ESLY OBET", "dni": "43440695", "empresa": "ONLINK S.A.C.", "contratista": "CJV", "sub": "ONLINK SAC", "archivo": "onlink.xlsx", "fila": 30 },
+        { "nombre": "CRISTOBAL LOYOLA ESLY OBET", "dni": "43440695", "empresa": "SOLETANCHE BACHY PERU SAC", "contratista": "CJV", "sub": "SOLETANCHE BACHY PERU SAC", "archivo": "sole.xlsx", "fila": 88 }
+      ],
+      "expected": {
+        "name": {
+          "kept": 1,
+          "collapsedGroups": 1,
+          "rowsCollapsed": 1,
+          "cross": 1,
+          "crossCopies": 2,
+          "keptSources": ["ONLINK SAC/onlink.xlsx:30"],
+          "conflictColumns": ["EMPRESA"],
+          "subcontratistas": ["ONLINK SAC", "SOLETANCHE BACHY PERU SAC"],
+          "issues": [{ "code": "DUPLICATE_COLLAPSED", "severity": "WARNING" }]
+        },
+        "dni": {
+          "kept": 1,
+          "collapsedGroups": 1,
+          "rowsCollapsed": 1,
+          "cross": 1,
+          "issues": [{ "code": "DUPLICATE_COLLAPSED", "severity": "WARNING" }]
+        }
+      }
+    },
+    {
+      "id": "cross-subcontratista-scope-subcontratista",
+      "note": "Same input, scope \"subcontratista\": the two copies survive so the Dos Subcontratas por Mes pivot can still find them, nothing is collapsed, and the group is still returned in crossSubcontratista with collapsed:false. This is the flip that keeps that pivot sheet alive if the owner wants it.",
+      "scope": "subcontratista",
+      "input": [
+        { "nombre": "CRISTOBAL LOYOLA ESLY OBET", "dni": "43440695", "empresa": "ONLINK S.A.C.", "sub": "ONLINK SAC", "archivo": "onlink.xlsx", "fila": 30 },
+        { "nombre": "CRISTOBAL LOYOLA ESLY OBET", "dni": "43440695", "empresa": "SOLETANCHE BACHY PERU SAC", "sub": "SOLETANCHE BACHY PERU SAC", "archivo": "sole.xlsx", "fila": 88 }
+      ],
+      "expected": {
+        "name": {
+          "kept": 2,
+          "collapsedGroups": 0,
+          "rowsCollapsed": 0,
+          "cross": 1,
+          "crossCollapsed": false,
+          "keptSources": ["ONLINK SAC/onlink.xlsx:30", "SOLETANCHE BACHY PERU SAC/sole.xlsx:88"],
+          "issues": []
+        }
+      }
+    },
+    {
+      "id": "cross-subcontratista-scope-keeps-in-file-duplicates-out",
+      "note": "scope \"subcontratista\" is not a licence to keep literal duplicates: the two rows inside ONLINK's own workbook still collapse, only the cross-company copy survives.",
+      "scope": "subcontratista",
+      "input": [
+        { "nombre": "PAZ CORREA JOSÉ CARLOS", "dni": "45671234", "sub": "ONLINK SAC", "archivo": "onlink.xlsx", "fila": 30 },
+        { "nombre": "PAZ CORREA JOSÉ CARLOS", "dni": "45671234", "sub": "ONLINK SAC", "archivo": "onlink.xlsx", "fila": 31 },
+        { "nombre": "PAZ CORREA JOSÉ CARLOS", "dni": "45671234", "sub": "SOLETANCHE BACHY PERU SAC", "archivo": "sole.xlsx", "fila": 9 }
+      ],
+      "expected": {
+        "name": {
+          "kept": 2,
+          "collapsedGroups": 1,
+          "rowsCollapsed": 1,
+          "cross": 1,
+          "crossCopies": 3,
+          "keptSources": ["ONLINK SAC/onlink.xlsx:30", "SOLETANCHE BACHY PERU SAC/sole.xlsx:9"],
+          "issues": [{ "code": "DUPLICATE_COLLAPSED", "severity": "INFO" }]
+        }
+      }
+    },
+    {
+      "id": "trabajador-3-three-subcontratistas",
+      "note": "03 §8.2 explicitly wants the Trabajador = 3 cases, which the pivot hides because only item 2 is visible. 5 keys in the last run have more than 2 copies.",
+      "input": [
+        { "nombre": "GIRALDO NEYRA JUAN CARLOS", "dni": "42871234", "empresa": "UNO SAC", "sub": "UNO SAC", "archivo": "uno.xlsx", "fila": 3 },
+        { "nombre": "GIRALDO NEYRA JUAN CARLOS", "dni": "42871234", "empresa": "DOS SAC", "sub": "DOS SAC", "archivo": "dos.xlsx", "fila": 4 },
+        { "nombre": "GIRALDO NEYRA JUAN CARLOS", "dni": "42871234", "empresa": "TRES SAC", "sub": "TRES SAC", "archivo": "tres.xlsx", "fila": 5 }
+      ],
+      "expected": {
+        "name": {
+          "kept": 1,
+          "collapsedGroups": 1,
+          "rowsCollapsed": 2,
+          "cross": 1,
+          "crossCopies": 3,
+          "keptSources": ["DOS SAC/dos.xlsx:4"],
+          "subcontratistas": ["DOS SAC", "TRES SAC", "UNO SAC"],
+          "conflictColumns": ["EMPRESA"],
+          "issues": [{ "code": "DUPLICATE_COLLAPSED", "severity": "WARNING" }]
+        }
+      }
+    },
+    {
+      "id": "winner-is-the-most-complete-copy",
+      "note": "The fuller record wins even though it arrives second and its subcontratista sorts later. Collapsing must never throw away a value only one copy carried.",
+      "input": [
+        { "nombre": "PEREZ RAMOS ANA", "dni": "12345678", "empresa": "A ELECTRO SAC", "sub": "A ELECTRO SAC", "archivo": "a.xlsx", "fila": 5 },
+        { "nombre": "PEREZ RAMOS ANA", "dni": "12345678", "empresa": "B MONTAJES SAC", "cargo": "OPERARIO", "distrito": "ATE", "genero": "femenino", "sub": "B MONTAJES SAC", "archivo": "b.xlsx", "fila": 9 }
+      ],
+      "expected": {
+        "name": {
+          "kept": 1,
+          "collapsedGroups": 1,
+          "rowsCollapsed": 1,
+          "cross": 1,
+          "keptSources": ["B MONTAJES SAC/b.xlsx:9"],
+          "winnerFields": 6,
+          "conflictColumns": ["EMPRESA"],
+          "fieldsLost": [],
+          "issues": [{ "code": "DUPLICATE_COLLAPSED", "severity": "WARNING" }]
+        }
+      }
+    },
+    {
+      "id": "winner-still-loses-fields-and-says-so",
+      "note": "The most complete copy is not always a superset. HPT exists only on the discarded copy, so it is reported as camposPerdidos rather than vanishing - the collapse is auditable.",
+      "input": [
+        { "nombre": "RIOS VASQUEZ ROLANDO", "dni": "44228681", "empresa": "BM1 SAC", "cargo": "SOLDADOR", "distrito": "SANTA ANITA", "genero": "masculino", "sub": "BM1 SAC", "archivo": "bm1.xlsx", "fila": 6 },
+        { "nombre": "RIOS VASQUEZ ROLANDO", "dni": "44228681", "empresa": "PG OBRAS SAC", "hpt": 176, "sub": "PG OBRAS SAC", "archivo": "pg.xlsx", "fila": 2 }
+      ],
+      "expected": {
+        "name": {
+          "kept": 1,
+          "collapsedGroups": 1,
+          "rowsCollapsed": 1,
+          "cross": 1,
+          "keptSources": ["BM1 SAC/bm1.xlsx:6"],
+          "winnerFields": 6,
+          "fieldsLost": ["HPT"],
+          "conflictColumns": ["EMPRESA"],
+          "issues": [{ "code": "DUPLICATE_COLLAPSED", "severity": "WARNING" }]
+        }
+      }
+    },
+    {
+      "id": "winner-tiebreak-is-deterministic-not-first-seen",
+      "note": "Equal completeness: the tiebreak is subcontratista then archivo then fila, in code-unit order, so ALFA wins over ZETA no matter which arrived first. Never localeCompare - a sort that depends on the host's ICU data is not determinism.",
+      "input": [
+        { "nombre": "VEGA SOTO LUIS", "dni": "33221100", "empresa": "ZETA SAC", "sub": "ZETA SAC", "archivo": "z.xlsx", "fila": 2 },
+        { "nombre": "VEGA SOTO LUIS", "dni": "33221100", "empresa": "ALFA SAC", "sub": "ALFA SAC", "archivo": "a.xlsx", "fila": 400 }
+      ],
+      "expected": {
+        "name": {
+          "kept": 1,
+          "collapsedGroups": 1,
+          "rowsCollapsed": 1,
+          "cross": 1,
+          "keptSources": ["ALFA SAC/a.xlsx:400"],
+          "issues": [{ "code": "DUPLICATE_COLLAPSED", "severity": "WARNING" }]
+        }
+      }
+    },
+    {
+      "id": "winner-tiebreak-falls-through-to-fila",
+      "note": "Same subcontratista and archivo, equal completeness: the lower source row wins.",
+      "input": [
+        { "nombre": "HEREDIA CARRANZA JOSEY OTOSA", "dni": "76543210", "sub": "SUB D", "archivo": "d.xlsx", "fila": 91 },
+        { "nombre": "HEREDIA CARRANZA JOSEY OTOSA", "dni": "76543210", "sub": "SUB D", "archivo": "d.xlsx", "fila": 12 }
+      ],
+      "expected": {
+        "name": {
+          "kept": 1,
+          "collapsedGroups": 1,
+          "rowsCollapsed": 1,
+          "cross": 0,
+          "keptSources": ["SUB D/d.xlsx:12"],
+          "issues": [{ "code": "DUPLICATE_COLLAPSED", "severity": "INFO" }]
+        }
+      }
+    },
+    {
+      "id": "distinct-people-are-left-alone",
+      "note": "The null case. Output order is (subcontratista, archivo, hoja, fila), which is the order zip.js walkInput already produces.",
+      "input": [
+        { "nombre": "ZAPATA RUIZ CARLOS", "dni": "11111111", "sub": "SUB B", "archivo": "b.xlsx", "fila": 3 },
+        { "nombre": "ABAD PONCE MARIA", "dni": "22222222", "sub": "SUB A", "archivo": "a.xlsx", "fila": 9 },
+        { "nombre": "MENDOZA LUNA JOSE", "dni": "33333333", "sub": "SUB A", "archivo": "a.xlsx", "fila": 2 }
+      ],
+      "expected": {
+        "name": {
+          "kept": 3,
+          "collapsedGroups": 0,
+          "rowsCollapsed": 0,
+          "cross": 0,
+          "keptSources": ["SUB A/a.xlsx:2", "SUB A/a.xlsx:9", "SUB B/b.xlsx:3"],
+          "issues": []
+        }
+      }
+    },
+    {
+      "id": "empty-input",
+      "note": "No records at all - the conservation identity must still hold and nothing may be reported.",
+      "input": [],
+      "expected": {
+        "name": { "kept": 0, "collapsedGroups": 0, "rowsCollapsed": 0, "cross": 0, "keptSources": [], "issues": [] }
+      }
+    }
+  ],
+
+  "conservation": [
+    {
+      "id": "simple-two-term-form",
+      "note": "The form the plan states: rows read - rows collapsed = rows written.",
+      "input": { "read": 5065, "collapsed": 697, "written": 4368 },
+      "expected": { "ok": true, "expected": 4368, "actual": 4368, "difference": 0 }
+    },
+    {
+      "id": "full-three-term-form",
+      "note": "03 §8.2 wants found - rejected = accepted and written = accepted - deduplicated.",
+      "input": { "read": 5065, "rejected": 643, "collapsed": 54, "written": 4368 },
+      "expected": { "ok": true, "expected": 4368, "actual": 4368, "difference": 0 }
+    },
+    {
+      "id": "per-workbook-array",
+      "note": "\"Sum of rows read per workbook\" taken literally - and the per-workbook detail is what the run report prints per subcontratista.",
+      "input": {
+        "read": [
+          { "subcontratista": "SUB A", "archivo": "a.xlsx", "filas": 120 },
+          { "subcontratista": "SUB B", "archivo": "b.xlsx", "filas": 80 },
+          { "subcontratista": "SUB C", "archivo": "c.xlsx", "rowsRead": 12 }
+        ],
+        "collapsed": 5,
+        "written": 207
+      },
+      "expected": { "ok": true, "expected": 207, "actual": 207, "difference": 0, "workbooks": 3, "read": 212 }
+    },
+    {
+      "id": "array-of-plain-counts",
+      "input": { "read": [10, 20, 30], "collapsed": 6, "written": 54 },
+      "expected": { "ok": true, "expected": 54, "actual": 54, "difference": 0, "workbooks": 3, "read": 60 }
+    },
+    {
+      "id": "one-row-lost",
+      "note": "The failure this check exists for: a row disappears without being collapsed or rejected.",
+      "input": { "read": 5065, "collapsed": 697, "written": 4367 },
+      "expected": { "ok": false, "expected": 4368, "actual": 4367, "difference": -1 }
+    },
+    {
+      "id": "one-row-invented",
+      "input": { "read": 100, "collapsed": 0, "written": 101 },
+      "expected": { "ok": false, "expected": 100, "actual": 101, "difference": 1 }
+    },
+    {
+      "id": "missing-term",
+      "note": "Unusable input is ok:false with a motivo, never a throw and never NaN.",
+      "input": { "collapsed": 1, "written": 1 },
+      "expected": { "ok": false, "expected": null, "actual": null, "motivoMatch": "read" }
+    },
+    {
+      "id": "non-integer-term",
+      "input": { "read": 10.5, "collapsed": 1, "written": 9 },
+      "expected": { "ok": false, "expected": null, "actual": null, "motivoMatch": "read" }
+    },
+    {
+      "id": "negative-term",
+      "input": { "read": 10, "rejected": -1, "collapsed": 0, "written": 10 },
+      "expected": { "ok": false, "expected": null, "actual": null, "motivoMatch": "rejected" }
+    },
+    {
+      "id": "nan-term",
+      "note": "A NaN must never propagate into expected/actual (BUG-20 is exactly that failure).",
+      "input": { "read": 10, "collapsed": "NaN", "written": 10 },
+      "expected": { "ok": false, "expected": null, "actual": null, "motivoMatch": "collapsed" }
+    }
+  ],
+
+  "corpus": {
+    "note": "measured over src/ReporteConsolidado.xlsx!Cuadro, the last real run, keyed with identity.js normalizeNameKey. Committed as numbers so the corpus-scale assertions run without opening the 3.7 MB workbook.",
+    "rows": 5065,
+    "rowsWithoutNameKey": 10,
+    "distinctRawNames": 4373,
+    "distinctNameKeys": 4358,
+    "nameKeyMultiplicity": { "1": 4307, "2": 46, "3": 3, "4": 1, "643": 1 },
+    "duplicateNameKeys": 51,
+    "rowsCollapsedByName": 697,
+    "keptByName": 4368,
+    "keysWithMoreThanTwoCopies": 5,
+    "keysSpanningMoreThanOneEmpresa": 24,
+    "rowsInThoseKeys": 48,
+    "duplicateKeysWithMoreThanOneDni": 3,
+    "distinctDniModeKeys": 4332,
+    "countDistinctDniMode": 4342,
+    "dniModeNote": [
+      "Documentation, not an assertion - the synthetic corpus models the key multiplicities,",
+      "not the DNI cross-links, so it cannot reproduce this number.",
+      "Running dedupe over the real Cuadro (EMPRESA standing in for the subcontratista folder,",
+      "which the consolidated file does not carry) gives 4,368 people keyed on the name and",
+      "4,342 keyed on the DNI. The DNI key finds 26 MORE duplicates than the name key, because",
+      "it catches people whose name is spelled two different ways beyond whitespace. That is the",
+      "size of the gap 05 §8 Q3 wants published for a few months before anyone switches the key -",
+      "and it points the opposite way from the homonym argument, which predicts more people.",
+      "The 24 cross-subcontratista groups are an UPPER BOUND until CONTRATISTA/EMPRESA",
+      "canonicalization lands: one of them is ATEQUIPA QUISPE JHONY AUGUSTO under",
+      "\"CONSTRUCC & TRANS EURO AMERICA S.A.C.\" and \"Construcc & Trans Euro America\" - one",
+      "company spelled two ways (03 §2.1), not two subcontratistas."
+    ]
+  }
+}

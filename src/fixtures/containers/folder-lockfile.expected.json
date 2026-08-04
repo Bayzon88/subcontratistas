@@ -1,0 +1,32 @@
+{
+  "fixture": "containers/folder-lockfile",
+  "kind": "folder",
+  "pathology": "an Excel ~$ lock file sits next to the real workbook and must be skipped BY NAME, never opened",
+  "spec": [
+    "03 §1.1"
+  ],
+  "period": "2026-02",
+  "extract": null,
+  "walk": {
+    "records": [
+      {
+        "subcontratista": "SUBCONTRATA CON LOCK",
+        "archivo": "lista.xlsx"
+      }
+    ],
+    "summary": {
+      "wrapper": false,
+      "topLevelFolders": 1,
+      "foldersOk": 1,
+      "foldersFailed": 0,
+      "looseFiles": 0
+    },
+    "issues": [
+      {
+        "code": "SKIPPED_LOCKFILE",
+        "severity": "INFO",
+        "count": 1
+      }
+    ]
+  }
+}

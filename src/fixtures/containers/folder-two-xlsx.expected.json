@@ -1,0 +1,33 @@
+{
+  "fixture": "containers/folder-two-xlsx",
+  "kind": "folder",
+  "pathology": "one subcontratista folder holds TWO .xlsx - the choice is arbitrary, so it is refused",
+  "spec": [
+    "03 §1.1",
+    "BUG-33"
+  ],
+  "period": "2026-02",
+  "extract": null,
+  "walk": {
+    "records": [
+      {
+        "subcontratista": "SUBCONTRATA BUENA",
+        "archivo": "lista.xlsx"
+      }
+    ],
+    "summary": {
+      "wrapper": false,
+      "topLevelFolders": 2,
+      "foldersOk": 1,
+      "foldersFailed": 1,
+      "looseFiles": 0
+    },
+    "issues": [
+      {
+        "code": "FOLDER_MULTIPLE_XLSX",
+        "severity": "FAILED",
+        "count": 1
+      }
+    ]
+  }
+}

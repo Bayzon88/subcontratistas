@@ -1,0 +1,245 @@
+{
+  "_comment": "Lookup cases measured against src/template.xlsx (the legacy template). `tabla` selects zona | epc | nombre; `fallback` is what the caller passes to LookupTable.get; `expectedIssue` names the template defect the case exercises, or null. See rework-plan/02-shortcomings.md BUG-29 and 03-expected-output.md 2.2.",
+  "casos": [
+    {
+      "tabla": "zona",
+      "input": "ATE",
+      "fallback": "No",
+      "expected": "ATE",
+      "expectedIssue": null,
+      "nota": "Hoja1!A2 - identity mapping, the baseline"
+    },
+    {
+      "tabla": "zona",
+      "input": "AGUSTINO",
+      "fallback": "No",
+      "expected": "EL AGUSTINO",
+      "expectedIssue": null,
+      "nota": "Hoja1!A5 - deliberate twin, key differs from value"
+    },
+    {
+      "tabla": "zona",
+      "input": "ATE VITARTE",
+      "fallback": "No",
+      "expected": "ATE",
+      "expectedIssue": null,
+      "nota": "Hoja1!A6 - deliberate twin"
+    },
+    {
+      "tabla": "zona",
+      "input": "AT E",
+      "fallback": "No",
+      "expected": "ATE",
+      "expectedIssue": null,
+      "nota": "Hoja1!A22 - the typo the business curated in by hand"
+    },
+    {
+      "tabla": "zona",
+      "input": "015001011-EL AGUSTINO",
+      "fallback": "No",
+      "expected": "EL AGUSTINO",
+      "expectedIssue": null,
+      "nota": "Hoja1!A20 - RENIEC ubigeo-prefixed key form"
+    },
+    {
+      "tabla": "zona",
+      "input": "VENTANILLA -CALLAO",
+      "fallback": "No",
+      "expected": "CALLAO",
+      "expectedIssue": null,
+      "nota": "Hoja1!A46 - district-with-province key form"
+    },
+    {
+      "tabla": "zona",
+      "input": "CERCADO DE  LIMA",
+      "fallback": "No",
+      "expected": "BREÑA",
+      "expectedIssue": "internalWhitespaceKeys",
+      "nota": "doubled internal space, both as input and as key Hoja1!A47"
+    },
+    {
+      "tabla": "zona",
+      "input": "  cercado   de lima  ",
+      "fallback": "No",
+      "expected": "BREÑA",
+      "expectedIssue": null,
+      "nota": "input-side padding + case: our normalizer, not Excel TRIM alone"
+    },
+    {
+      "tabla": "zona",
+      "input": "CARMEN DE LA LEGUA -REYNOSO",
+      "fallback": "No",
+      "expected": "CALLAO",
+      "expectedIssue": "strandedKeys",
+      "nota": "BUG-29 - Hoja1!A14 key is padded and untwinned, so the live template returns \"No\""
+    },
+    {
+      "tabla": "zona",
+      "input": "LA PERLA CALLAO",
+      "fallback": "No",
+      "expected": "CALLAO",
+      "expectedIssue": "strandedKeys",
+      "nota": "BUG-29 - Hoja1!A50 key has a LEADING space and no twin; live template returns \"No\""
+    },
+    {
+      "tabla": "zona",
+      "input": "CARMEN DE LA LEGUA-REYNOSO",
+      "fallback": "No",
+      "expected": "CALLAO",
+      "expectedIssue": null,
+      "nota": "Hoja1!A57 - the reachable sibling of row 14, no space before the hyphen"
+    },
+    {
+      "tabla": "zona",
+      "input": "LA PERLA",
+      "fallback": "No",
+      "expected": "CALLAO",
+      "expectedIssue": null,
+      "nota": "Hoja1!A49 - a DIFFERENT key from row 50, which is why row 50 is stranded"
+    },
+    {
+      "tabla": "zona",
+      "input": "BREÑA",
+      "fallback": "No",
+      "expected": "BREÑA",
+      "expectedIssue": null,
+      "nota": "Hoja1!A9"
+    },
+    {
+      "tabla": "zona",
+      "input": "BRENA",
+      "fallback": "No",
+      "expected": "BREÑA",
+      "expectedIssue": null,
+      "nota": "accent-folded input resolves; Excel's VLOOKUP would not fold and would miss"
+    },
+    {
+      "tabla": "zona",
+      "input": "SAN LUIS",
+      "fallback": "No",
+      "expected": "SAN LUIS ",
+      "expectedIssue": "paddedValues",
+      "nota": "BUG-29 - the VALUE at Hoja1!B60/B61 carries a trailing space, returned verbatim"
+    },
+    {
+      "tabla": "zona",
+      "input": "SURQUILLO",
+      "fallback": "No",
+      "expected": "No",
+      "expectedIssue": null,
+      "nota": "a real Lima district that is genuinely outside the zone - falls to the caller's default"
+    },
+    {
+      "tabla": "zona",
+      "input": "",
+      "fallback": "No",
+      "expected": "No",
+      "expectedIssue": null,
+      "nota": "blank DISTRITO SEGUN DNI - the whole-column-empty pathology of BUG-08"
+    },
+    {
+      "tabla": "zona",
+      "input": null,
+      "fallback": "No",
+      "expected": "No",
+      "expectedIssue": null,
+      "nota": "missing column entirely"
+    },
+    {
+      "tabla": "epc",
+      "input": "2A TECH SCRL",
+      "fallback": "CJV",
+      "expected": "EPC",
+      "expectedIssue": null,
+      "nota": "Hoja1!L6"
+    },
+    {
+      "tabla": "epc",
+      "input": "j & v resguardo sac",
+      "fallback": "CJV",
+      "expected": "EPC",
+      "expectedIssue": null,
+      "nota": "Hoja1!L7 - VLOOKUP is case-insensitive and so are we"
+    },
+    {
+      "tabla": "epc",
+      "input": "PROSEGURIDAD S.A",
+      "fallback": "CJV",
+      "expected": "EPC",
+      "expectedIssue": null,
+      "nota": "Hoja1!L8"
+    },
+    {
+      "tabla": "epc",
+      "input": " SOCIAL CAPITAL GROUP SAC ",
+      "fallback": "CJV",
+      "expected": "EPC",
+      "expectedIssue": null,
+      "nota": "Hoja1!L9 - the EPC formula does NOT wrap TRIM, so the live template misses this one"
+    },
+    {
+      "tabla": "epc",
+      "input": "CLJ CONTRUCTORA SAC",
+      "fallback": "CJV",
+      "expected": "CJV",
+      "expectedIssue": null,
+      "nota": "unlisted contratista - the template's IFERROR default"
+    },
+    {
+      "tabla": "epc",
+      "input": "CONTRATISTA PRNCIPAL",
+      "fallback": "CJV",
+      "expected": "CJV",
+      "expectedIssue": null,
+      "nota": "L5/M5 is the header row, excluded from the map; the live template would answer CONSORCIO"
+    },
+    {
+      "tabla": "nombre",
+      "input": "2A TECH SCRL",
+      "fallback": null,
+      "expected": "A2 TECH",
+      "expectedIssue": null,
+      "nota": "Sheet1!A2"
+    },
+    {
+      "tabla": "nombre",
+      "input": "\r\nMCORP SAC",
+      "fallback": null,
+      "expected": "MCORP SAC",
+      "expectedIssue": "paddedKeys",
+      "nota": "Sheet1!A49 - the _x000d__x000a_MCORP SAC embedded-CRLF pathology of 03 2.1"
+    },
+    {
+      "tabla": "nombre",
+      "input": "MCORP SAC",
+      "fallback": null,
+      "expected": "MCORP SAC",
+      "expectedIssue": null,
+      "nota": "same key once CR/LF is stripped"
+    },
+    {
+      "tabla": "nombre",
+      "input": "BK MODULAR  S.A.C",
+      "fallback": null,
+      "expected": "BK MODULAR (ABERTIS)",
+      "expectedIssue": "internalWhitespaceKeys",
+      "nota": "Sheet1!A10 - doubled internal space in the key"
+    },
+    {
+      "tabla": "nombre",
+      "input": "GH GRUAS PERU SAC",
+      "fallback": null,
+      "expected": null,
+      "expectedIssue": "blankKeys",
+      "nota": "Sheet1!A31 has no Razon Social, only a Nombre Comercial - unreachable by any lookup"
+    },
+    {
+      "tabla": "nombre",
+      "input": "EMPRESA QUE NO EXISTE SAC",
+      "fallback": null,
+      "expected": null,
+      "expectedIssue": null,
+      "nota": "unlisted"
+    }
+  ]
+}

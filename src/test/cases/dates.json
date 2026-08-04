@@ -1,0 +1,420 @@
+{
+  "_readme": [
+    "Committed case table for src/pipeline/dates.js (05-implementation-plan.md Phase 0).",
+    "Every record: {name, input, expected, expectedIssue}.",
+    "input.raw is the cell value as read. input.rawKind selects a non-JSON type:",
+    "  'date'      -> new Date(y, m-1, d[, H, M, S]) from input.raw as an array (LOCAL, as SheetJS builds it)",
+    "  'undefined' -> undefined      (input.raw is ignored)",
+    "  'invalidDate' -> new Date(NaN)",
+    "  absent      -> input.raw used verbatim (string, number, null, boolean)",
+    "input.column is a canonical column name from pipeline/columns.js.",
+    "input.period defaults to '2026-02-28' - FEBRERO_2026, the last real run.",
+    "input.config overrides config.js tunables for that case only.",
+    "expected asserts every key it declares; expectedIssue is the FULL ordered list of",
+    "issues the call must append - [] means the call must be silent.",
+    "Reference serials were computed independently of dates.js as the day count from",
+    "1899-12-30 (valid for every date after 1900-03-01)."
+  ],
+
+  "cases": [
+    {
+      "name": "text dd/mm/yyyy - the plan's worked example, 4 July not 7 April",
+      "input": { "raw": "04/07/1994", "column": "FECHA NACIMIENTO" },
+      "expected": { "ok": true, "serial": 34519, "ymd": { "y": 1994, "m": 7, "d": 4 }, "matchedFormat": "DD/MM/YYYY", "empty": false, "code": null },
+      "expectedIssue": []
+    },
+    {
+      "name": "text d/m/yyyy - 14/2/1989",
+      "input": { "raw": "14/2/1989", "column": "FECHA NACIMIENTO" },
+      "expected": { "ok": true, "serial": 32553, "ymd": { "y": 1989, "m": 2, "d": 14 }, "matchedFormat": "D/M/YYYY" },
+      "expectedIssue": []
+    },
+    {
+      "name": "text d/m/yyyy - 3/5/1965 is 3 May, never 5 March",
+      "input": { "raw": "3/5/1965", "column": "FECHA NACIMIENTO" },
+      "expected": { "ok": true, "serial": 23865, "ymd": { "y": 1965, "m": 5, "d": 3 }, "matchedFormat": "D/M/YYYY" },
+      "expectedIssue": []
+    },
+    {
+      "name": "text d/mm/yyyy - 3/10/1976",
+      "input": { "raw": "3/10/1976", "column": "FECHA NACIMIENTO" },
+      "expected": { "ok": true, "serial": 28036, "ymd": { "y": 1976, "m": 10, "d": 3 }, "matchedFormat": "D/M/YYYY" },
+      "expectedIssue": []
+    },
+    {
+      "name": "text dd/mm/yyyy - 01/12/2002",
+      "input": { "raw": "01/12/2002", "column": "FECHA NACIMIENTO" },
+      "expected": { "ok": true, "serial": 37591, "ymd": { "y": 2002, "m": 12, "d": 1 }, "matchedFormat": "DD/MM/YYYY" },
+      "expectedIssue": []
+    },
+    {
+      "name": "text dd-mm-yyyy",
+      "input": { "raw": "15-03-2020", "column": "FECHA INICIO DE LABORES EN OBRA" },
+      "expected": { "ok": true, "serial": 43905, "ymd": { "y": 2020, "m": 3, "d": 15 }, "matchedFormat": "DD-MM-YYYY" },
+      "expectedIssue": []
+    },
+    {
+      "name": "text dd.mm.yyyy - the template's own numFmt 164",
+      "input": { "raw": "15.03.2020", "column": "FECHA INICIO DE LABORES EN OBRA" },
+      "expected": { "ok": true, "serial": 43905, "ymd": { "y": 2020, "m": 3, "d": 15 }, "matchedFormat": "DD.MM.YYYY" },
+      "expectedIssue": []
+    },
+    {
+      "name": "ISO yyyy-mm-dd is unambiguous and accepted last, after every day-first candidate",
+      "input": { "raw": "2020-03-15", "column": "FECHA INICIO DE LABORES EN OBRA" },
+      "expected": { "ok": true, "serial": 43905, "ymd": { "y": 2020, "m": 3, "d": 15 }, "matchedFormat": "YYYY-MM-DD" },
+      "expectedIssue": []
+    },
+    {
+      "name": "untrimmed text - strict mode rejects padding, so trim comes first",
+      "input": { "raw": "  04/07/1994 ", "column": "FECHA NACIMIENTO" },
+      "expected": { "ok": true, "serial": 34519, "matchedFormat": "DD/MM/YYYY" },
+      "expectedIssue": []
+    },
+    {
+      "name": "text with an embedded newline is not a date",
+      "input": { "raw": "04/07/1994\n", "column": "FECHA NACIMIENTO" },
+      "expected": { "ok": true, "serial": 34519, "matchedFormat": "DD/MM/YYYY" },
+      "expectedIssue": []
+    },
+
+    {
+      "name": "two-digit year in col O - 30/1/26 expands to 2026 (pivot 60)",
+      "input": { "raw": "30/1/26", "column": "FECHA INICIO DE LABORES EN OBRA" },
+      "expected": { "ok": true, "serial": 46052, "ymd": { "y": 2026, "m": 1, "d": 30 }, "matchedFormat": "D/M/YY" },
+      "expectedIssue": [{ "code": "DATE_TWO_DIGIT_YEAR", "severity": "INFO", "detalle": { "ano": 2026, "pivote": 60, "retrocedidoUnSiglo": false } }]
+    },
+    {
+      "name": "two-digit year in col O - 27/05/25",
+      "input": { "raw": "27/05/25", "column": "FECHA INICIO DE LABORES EN OBRA" },
+      "expected": { "ok": true, "serial": 45804, "matchedFormat": "DD/MM/YY" },
+      "expectedIssue": [{ "code": "DATE_TWO_DIGIT_YEAR", "severity": "INFO" }]
+    },
+    {
+      "name": "two-digit year in col M expands the same way",
+      "input": { "raw": "27/05/25", "column": "FECHA CESE/BAJA" },
+      "expected": { "ok": true, "serial": 45804 },
+      "expectedIssue": [{ "code": "DATE_TWO_DIGIT_YEAR", "severity": "INFO" }]
+    },
+    {
+      "name": "two-digit year in col F is REJECTED - 3/5/65 cannot be told from a typo (05 §8 Q1)",
+      "input": { "raw": "3/5/65", "column": "FECHA NACIMIENTO" },
+      "expected": { "ok": false, "empty": false, "serial": null, "code": "DATE_TWO_DIGIT_YEAR", "matchedFormat": "D/M/YY" },
+      "expectedIssue": [{ "code": "DATE_TWO_DIGIT_YEAR", "severity": "ERROR" }]
+    },
+    {
+      "name": "policy is data-driven: REJECT_TWO_DIGIT_BIRTH_YEARS=false expands col F instead",
+      "input": { "raw": "3/5/65", "column": "FECHA NACIMIENTO", "config": { "REJECT_TWO_DIGIT_BIRTH_YEARS": false } },
+      "expected": { "ok": true, "serial": 23865, "ymd": { "y": 1965, "m": 5, "d": 3 } },
+      "expectedIssue": [{ "code": "DATE_TWO_DIGIT_YEAR", "severity": "INFO" }]
+    },
+    {
+      "name": "pivot boundary yy=60 -> 2060, then past-only pulls it back to 1960",
+      "input": { "raw": "01/01/60", "column": "FECHA NACIMIENTO", "config": { "REJECT_TWO_DIGIT_BIRTH_YEARS": false } },
+      "expected": { "ok": true, "serial": 21916, "ymd": { "y": 1960, "m": 1, "d": 1 } },
+      "expectedIssue": [{ "code": "DATE_TWO_DIGIT_YEAR", "severity": "INFO", "detalle": { "ano": 1960, "retrocedidoUnSiglo": true } }]
+    },
+    {
+      "name": "pivot boundary yy=61 -> 1961 directly, no shift",
+      "input": { "raw": "01/01/61", "column": "FECHA NACIMIENTO", "config": { "REJECT_TWO_DIGIT_BIRTH_YEARS": false } },
+      "expected": { "ok": true, "serial": 22282, "ymd": { "y": 1961, "m": 1, "d": 1 } },
+      "expectedIssue": [{ "code": "DATE_TWO_DIGIT_YEAR", "severity": "INFO", "detalle": { "ano": 1961, "retrocedidoUnSiglo": false } }]
+    },
+    {
+      "name": "past-only keeps a legitimate next-month start (period end + 1 month is plausible)",
+      "input": { "raw": "15/3/26", "column": "FECHA INICIO DE LABORES EN OBRA" },
+      "expected": { "ok": true, "serial": 46096, "ymd": { "y": 2026, "m": 3, "d": 15 } },
+      "expectedIssue": [{ "code": "DATE_TWO_DIGIT_YEAR", "severity": "INFO", "detalle": { "retrocedidoUnSiglo": false } }]
+    },
+    {
+      "name": "past-only shifts a far-future two-digit year back a century, which then fails the range",
+      "input": { "raw": "30/12/26", "column": "FECHA INICIO DE LABORES EN OBRA" },
+      "expected": { "ok": false, "serial": null, "code": "DATE_IMPLAUSIBLE", "parsedYMD": { "y": 1926, "m": 12, "d": 30 } },
+      "expectedIssue": [
+        { "code": "DATE_TWO_DIGIT_YEAR", "severity": "INFO", "detalle": { "retrocedidoUnSiglo": true } },
+        { "code": "DATE_IMPLAUSIBLE", "severity": "WARNING" }
+      ]
+    },
+
+    {
+      "name": "malformed: three-digit year must not silently become 0205 (BUG-06, real value)",
+      "input": { "raw": "09/10/205", "column": "FECHA INICIO DE LABORES EN OBRA" },
+      "expected": { "ok": false, "empty": false, "serial": null, "code": "DATE_UNPARSEABLE", "matchedFormat": null },
+      "expectedIssue": [{ "code": "DATE_UNPARSEABLE", "severity": "ERROR" }]
+    },
+    {
+      "name": "malformed: five-digit year (real value)",
+      "input": { "raw": "05/09/20258", "column": "FECHA INICIO DE LABORES EN OBRA" },
+      "expected": { "ok": false, "serial": null, "code": "DATE_UNPARSEABLE" },
+      "expectedIssue": [{ "code": "DATE_UNPARSEABLE", "severity": "ERROR" }]
+    },
+    {
+      "name": "malformed: not a date shape (real value)",
+      "input": { "raw": "10-11-202-6", "column": "FECHA CESE/BAJA" },
+      "expected": { "ok": false, "serial": null, "code": "DATE_UNPARSEABLE" },
+      "expectedIssue": [{ "code": "DATE_UNPARSEABLE", "severity": "WARNING" }]
+    },
+    {
+      "name": "malformed: 31 February is calendar-impossible",
+      "input": { "raw": "31/02/2026", "column": "FECHA INICIO DE LABORES EN OBRA" },
+      "expected": { "ok": false, "serial": null, "code": "DATE_UNPARSEABLE" },
+      "expectedIssue": [{ "code": "DATE_UNPARSEABLE", "severity": "ERROR" }]
+    },
+    {
+      "name": "malformed: 30 February in a leap year is still impossible",
+      "input": { "raw": "30/02/2024", "column": "FECHA NACIMIENTO" },
+      "expected": { "ok": false, "serial": null, "code": "DATE_UNPARSEABLE" },
+      "expectedIssue": [{ "code": "DATE_UNPARSEABLE", "severity": "ERROR" }]
+    },
+    {
+      "name": "malformed: day out of range",
+      "input": { "raw": "32/01/2026", "column": "FECHA INICIO DE LABORES EN OBRA" },
+      "expected": { "ok": false, "serial": null, "code": "DATE_UNPARSEABLE" },
+      "expectedIssue": [{ "code": "DATE_UNPARSEABLE", "severity": "ERROR" }]
+    },
+    {
+      "name": "malformed: month out of range - and month-first must NEVER be attempted",
+      "input": { "raw": "13/13/2020", "column": "FECHA INICIO DE LABORES EN OBRA" },
+      "expected": { "ok": false, "serial": null, "code": "DATE_UNPARSEABLE" },
+      "expectedIssue": [{ "code": "DATE_UNPARSEABLE", "severity": "ERROR" }]
+    },
+    {
+      "name": "column-shift residue: a person's name in FECHA CESE/BAJA (real value)",
+      "input": { "raw": "PUMACAYO VILCHEZ TEOFILO DINO", "column": "FECHA CESE/BAJA" },
+      "expected": { "ok": false, "empty": false, "serial": null, "code": "DATE_UNPARSEABLE" },
+      "expectedIssue": [{ "code": "DATE_UNPARSEABLE", "severity": "WARNING" }]
+    },
+    {
+      "name": "a bare numeric STRING is not an accepted form - flagged, not guessed at",
+      "input": { "raw": "34519", "column": "FECHA INICIO DE LABORES EN OBRA" },
+      "expected": { "ok": false, "serial": null, "code": "DATE_UNPARSEABLE" },
+      "expectedIssue": [{ "code": "DATE_UNPARSEABLE", "severity": "ERROR", "detalle": { "numerico": true } }]
+    },
+    {
+      "name": "month-first input that is valid month-first only must be rejected, not reinterpreted",
+      "input": { "raw": "07/25/1994", "column": "FECHA NACIMIENTO" },
+      "expected": { "ok": false, "serial": null, "code": "DATE_UNPARSEABLE" },
+      "expectedIssue": [{ "code": "DATE_UNPARSEABLE", "severity": "ERROR" }]
+    },
+
+    {
+      "name": "serial: plain integer",
+      "input": { "raw": 34519, "column": "FECHA NACIMIENTO" },
+      "expected": { "ok": true, "serial": 34519, "ymd": { "y": 1994, "m": 7, "d": 4 }, "matchedFormat": "serial" },
+      "expectedIssue": []
+    },
+    {
+      "name": "serial: fractional at .791666... (19:00) - 586 cells in the last run",
+      "input": { "raw": 43139.791666666664, "column": "FECHA INICIO DE LABORES EN OBRA" },
+      "expected": { "ok": true, "serial": 43139, "ymd": { "y": 2018, "m": 2, "d": 8 } },
+      "expectedIssue": [{ "code": "DATE_FRACTIONAL_TRUNCATED", "severity": "INFO", "detalle": { "hora": "19:00:00" } }]
+    },
+    {
+      "name": "serial: fractional at .833333... (20:00) - 694 cells in the last run",
+      "input": { "raw": 43139.833333333336, "column": "FECHA INICIO DE LABORES EN OBRA" },
+      "expected": { "ok": true, "serial": 43139, "ymd": { "y": 2018, "m": 2, "d": 8 } },
+      "expectedIssue": [{ "code": "DATE_FRACTIONAL_TRUNCATED", "severity": "INFO", "detalle": { "hora": "20:00:00" } }]
+    },
+    {
+      "name": "serial 60 is Excel's fictitious 1900-02-29 - parsed as such, then rejected on range",
+      "input": { "raw": 60, "column": "FECHA NACIMIENTO" },
+      "expected": { "ok": false, "serial": null, "code": "DATE_IMPLAUSIBLE", "parsedYMD": { "y": 1900, "m": 2, "d": 29 }, "parsedSerial": 60 },
+      "expectedIssue": [{ "code": "DATE_IMPLAUSIBLE", "severity": "WARNING", "detalle": { "interpretada": "29/02/1900" } }]
+    },
+    {
+      "name": "serial 61 is 1900-03-01 - the other side of the leap-year boundary",
+      "input": { "raw": 61, "column": "FECHA NACIMIENTO" },
+      "expected": { "ok": false, "serial": null, "code": "DATE_IMPLAUSIBLE", "parsedYMD": { "y": 1900, "m": 3, "d": 1 }, "parsedSerial": 61 },
+      "expectedIssue": [{ "code": "DATE_IMPLAUSIBLE", "severity": "WARNING", "detalle": { "interpretada": "01/03/1900" } }]
+    },
+    {
+      "name": "serial 0 is Excel's non-date 'January 0, 1900' - what Number('') produces",
+      "input": { "raw": 0, "column": "FECHA NACIMIENTO" },
+      "expected": { "ok": false, "empty": false, "serial": null, "code": "DATE_UNPARSEABLE" },
+      "expectedIssue": [{ "code": "DATE_UNPARSEABLE", "severity": "ERROR" }]
+    },
+    {
+      "name": "serial: negative",
+      "input": { "raw": -1, "column": "FECHA NACIMIENTO" },
+      "expected": { "ok": false, "serial": null, "code": "DATE_UNPARSEABLE" },
+      "expectedIssue": [{ "code": "DATE_UNPARSEABLE", "severity": "ERROR" }]
+    },
+    {
+      "name": "serial: beyond 9999-12-31",
+      "input": { "raw": 2958466, "column": "FECHA INICIO DE LABORES EN OBRA" },
+      "expected": { "ok": false, "serial": null, "code": "DATE_UNPARSEABLE" },
+      "expectedIssue": [{ "code": "DATE_UNPARSEABLE", "severity": "ERROR" }]
+    },
+    {
+      "name": "serial: the real future cese 46235 = 2026-08-01 sitting in FEBRERO_2026",
+      "input": { "raw": 46235, "column": "FECHA CESE/BAJA" },
+      "expected": { "ok": false, "serial": null, "code": "DATE_IMPLAUSIBLE", "parsedSerial": 46235, "parsedYMD": { "y": 2026, "m": 8, "d": 1 } },
+      "expectedIssue": [{ "code": "DATE_IMPLAUSIBLE", "severity": "WARNING", "detalle": { "interpretada": "01/08/2026", "maximo": "28/03/2026" } }]
+    },
+    {
+      "name": "serial: an ordinary cese inside the window",
+      "input": { "raw": 45000, "column": "FECHA CESE/BAJA" },
+      "expected": { "ok": true, "serial": 45000, "ymd": { "y": 2023, "m": 3, "d": 15 } },
+      "expectedIssue": []
+    },
+
+    {
+      "name": "sentinel: empty string x3801 in FECHA CESE/BAJA - genuinely empty, and silent",
+      "input": { "raw": "", "column": "FECHA CESE/BAJA" },
+      "expected": { "ok": false, "empty": true, "serial": null, "code": null, "sentinel": null },
+      "expectedIssue": []
+    },
+    {
+      "name": "sentinel: '-' x754",
+      "input": { "raw": "-", "column": "FECHA CESE/BAJA" },
+      "expected": { "ok": false, "empty": true, "serial": null, "sentinel": "-" },
+      "expectedIssue": [{ "code": "TEXT_NORMALIZED", "severity": "INFO" }]
+    },
+    {
+      "name": "sentinel: ' - ' x154",
+      "input": { "raw": " - ", "column": "FECHA CESE/BAJA" },
+      "expected": { "ok": false, "empty": true, "serial": null, "sentinel": "-" },
+      "expectedIssue": [{ "code": "TEXT_NORMALIZED", "severity": "INFO" }]
+    },
+    {
+      "name": "sentinel: '---' x125",
+      "input": { "raw": "---", "column": "FECHA CESE/BAJA" },
+      "expected": { "ok": false, "empty": true, "serial": null, "sentinel": "---" },
+      "expectedIssue": [{ "code": "TEXT_NORMALIZED", "severity": "INFO" }]
+    },
+    {
+      "name": "sentinel: 'ACTIVO' x58",
+      "input": { "raw": "ACTIVO", "column": "FECHA CESE/BAJA" },
+      "expected": { "ok": false, "empty": true, "serial": null, "sentinel": "ACTIVO" },
+      "expectedIssue": [{ "code": "TEXT_NORMALIZED", "severity": "INFO" }]
+    },
+    {
+      "name": "sentinel: case and padding folded",
+      "input": { "raw": " activo ", "column": "FECHA CESE/BAJA" },
+      "expected": { "ok": false, "empty": true, "sentinel": "ACTIVO" },
+      "expectedIssue": [{ "code": "TEXT_NORMALIZED", "severity": "INFO" }]
+    },
+    {
+      "name": "sentinel: dashes are universal, so '-' is empty in FECHA NACIMIENTO too",
+      "input": { "raw": "-", "column": "FECHA NACIMIENTO" },
+      "expected": { "ok": false, "empty": true, "serial": null, "sentinel": "-" },
+      "expectedIssue": [{ "code": "TEXT_NORMALIZED", "severity": "INFO" }]
+    },
+    {
+      "name": "sentinel: 'ACTIVO' is NOT a sentinel outside FECHA CESE/BAJA",
+      "input": { "raw": "ACTIVO", "column": "FECHA NACIMIENTO" },
+      "expected": { "ok": false, "empty": false, "serial": null, "code": "DATE_UNPARSEABLE" },
+      "expectedIssue": [{ "code": "DATE_UNPARSEABLE", "severity": "ERROR" }]
+    },
+    {
+      "name": "blank: null is empty and silent",
+      "input": { "raw": null, "column": "FECHA CESE/BAJA" },
+      "expected": { "ok": false, "empty": true, "serial": null, "sentinel": null },
+      "expectedIssue": []
+    },
+    {
+      "name": "blank: undefined is empty and silent",
+      "input": { "raw": null, "rawKind": "undefined", "column": "FECHA CESE/BAJA" },
+      "expected": { "ok": false, "empty": true, "serial": null },
+      "expectedIssue": []
+    },
+    {
+      "name": "blank: whitespace only is empty and silent",
+      "input": { "raw": "   ", "column": "FECHA NACIMIENTO" },
+      "expected": { "ok": false, "empty": true, "serial": null },
+      "expectedIssue": []
+    },
+
+    {
+      "name": "plausibility: birth exactly at periodEnd - MAX_AGE_YEARS is accepted (inclusive)",
+      "input": { "raw": 16861, "column": "FECHA NACIMIENTO" },
+      "expected": { "ok": true, "serial": 16861, "ymd": { "y": 1946, "m": 2, "d": 28 } },
+      "expectedIssue": []
+    },
+    {
+      "name": "plausibility: one day older than MAX_AGE_YEARS is rejected",
+      "input": { "raw": 16860, "column": "FECHA NACIMIENTO" },
+      "expected": { "ok": false, "serial": null, "code": "DATE_IMPLAUSIBLE" },
+      "expectedIssue": [{ "code": "DATE_IMPLAUSIBLE", "severity": "WARNING", "detalle": { "minimo": "28/02/1946" } }]
+    },
+    {
+      "name": "plausibility: birth exactly at periodEnd - MIN_AGE_YEARS is accepted (inclusive)",
+      "input": { "raw": 40237, "column": "FECHA NACIMIENTO" },
+      "expected": { "ok": true, "serial": 40237, "ymd": { "y": 2010, "m": 2, "d": 28 } },
+      "expectedIssue": []
+    },
+    {
+      "name": "plausibility: one day younger than MIN_AGE_YEARS is rejected",
+      "input": { "raw": 40238, "column": "FECHA NACIMIENTO" },
+      "expected": { "ok": false, "serial": null, "code": "DATE_IMPLAUSIBLE" },
+      "expectedIssue": [{ "code": "DATE_IMPLAUSIBLE", "severity": "WARNING", "detalle": { "maximo": "28/02/2010" } }]
+    },
+    {
+      "name": "plausibility: obra date exactly at EARLIEST_OBRA_DATE is accepted",
+      "input": { "raw": 42005, "column": "FECHA INICIO DE LABORES EN OBRA" },
+      "expected": { "ok": true, "serial": 42005, "ymd": { "y": 2015, "m": 1, "d": 1 } },
+      "expectedIssue": []
+    },
+    {
+      "name": "plausibility: one day before EARLIEST_OBRA_DATE is rejected",
+      "input": { "raw": 42004, "column": "FECHA INICIO DE LABORES EN OBRA" },
+      "expected": { "ok": false, "serial": null, "code": "DATE_IMPLAUSIBLE" },
+      "expectedIssue": [{ "code": "DATE_IMPLAUSIBLE", "severity": "WARNING", "detalle": { "minimo": "01/01/2015" } }]
+    },
+    {
+      "name": "plausibility: obra date exactly at periodEnd + 1 month is accepted",
+      "input": { "raw": 46109, "column": "FECHA INICIO DE LABORES EN OBRA" },
+      "expected": { "ok": true, "serial": 46109, "ymd": { "y": 2026, "m": 3, "d": 28 } },
+      "expectedIssue": []
+    },
+    {
+      "name": "plausibility: one day past periodEnd + 1 month is rejected",
+      "input": { "raw": 46110, "column": "FECHA INICIO DE LABORES EN OBRA" },
+      "expected": { "ok": false, "serial": null, "code": "DATE_IMPLAUSIBLE" },
+      "expectedIssue": [{ "code": "DATE_IMPLAUSIBLE", "severity": "WARNING", "detalle": { "maximo": "28/03/2026" } }]
+    },
+    {
+      "name": "plausibility follows the period, not the wall clock: same value, older period",
+      "input": { "raw": 46052, "column": "FECHA INICIO DE LABORES EN OBRA", "period": "2025-10-31" },
+      "expected": { "ok": false, "serial": null, "code": "DATE_IMPLAUSIBLE", "parsedYMD": { "y": 2026, "m": 1, "d": 30 } },
+      "expectedIssue": [{ "code": "DATE_IMPLAUSIBLE", "severity": "WARNING", "detalle": { "maximo": "30/11/2025" } }]
+    },
+
+    {
+      "name": "JS Date from cellDates:true is read with LOCAL getters (SheetJS builds local midnight)",
+      "input": { "raw": [1994, 7, 4], "rawKind": "date", "column": "FECHA NACIMIENTO" },
+      "expected": { "ok": true, "serial": 34519, "ymd": { "y": 1994, "m": 7, "d": 4 }, "matchedFormat": "date" },
+      "expectedIssue": []
+    },
+    {
+      "name": "JS Date carrying a time is truncated, and says so",
+      "input": { "raw": [2018, 2, 8, 19, 0, 0], "rawKind": "date", "column": "FECHA INICIO DE LABORES EN OBRA" },
+      "expected": { "ok": true, "serial": 43139, "ymd": { "y": 2018, "m": 2, "d": 8 } },
+      "expectedIssue": [{ "code": "DATE_FRACTIONAL_TRUNCATED", "severity": "INFO", "detalle": { "hora": "19:00:00" } }]
+    },
+    {
+      "name": "an Invalid Date is rejected, never coerced to NaN",
+      "input": { "raw": null, "rawKind": "invalidDate", "column": "FECHA NACIMIENTO" },
+      "expected": { "ok": false, "serial": null, "code": "DATE_UNPARSEABLE" },
+      "expectedIssue": [{ "code": "DATE_UNPARSEABLE", "severity": "ERROR" }]
+    },
+    {
+      "name": "NaN is rejected, never propagated",
+      "input": { "raw": "NaN", "rawKind": "nan", "column": "FECHA NACIMIENTO" },
+      "expected": { "ok": false, "serial": null, "code": "DATE_UNPARSEABLE" },
+      "expectedIssue": [{ "code": "DATE_UNPARSEABLE", "severity": "ERROR" }]
+    },
+    {
+      "name": "a boolean cell is rejected",
+      "input": { "raw": true, "column": "FECHA CESE/BAJA" },
+      "expected": { "ok": false, "serial": null, "code": "DATE_UNPARSEABLE" },
+      "expectedIssue": [{ "code": "DATE_UNPARSEABLE", "severity": "WARNING" }]
+    },
+    {
+      "name": "a 1904-system workbook fails loudly instead of shifting by 1,462 days",
+      "input": { "raw": 34519, "column": "FECHA NACIMIENTO", "date1904": true },
+      "expected": { "ok": false, "serial": null, "code": "DATE_SYSTEM_1904" },
+      "expectedIssue": [{ "code": "DATE_SYSTEM_1904", "severity": "FAILED" }]
+    }
+  ]
+}

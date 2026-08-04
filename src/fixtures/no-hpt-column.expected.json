@@ -1,0 +1,186 @@
+{
+  "fixture": "no-hpt-column.xlsx",
+  "kind": "workbook",
+  "pathology": "the older input format: the HPT column is absent entirely",
+  "spec": [
+    "03 §1.3",
+    "AC 4",
+    "BUG-55"
+  ],
+  "period": "2026-02",
+  "subcontratista": "SINTETICA ANDINA CONTRATISTAS",
+  "read": {
+    "ok": true,
+    "hoja": "Cuadro",
+    "celdaAncla": "A1",
+    "filaEncabezado": 1,
+    "rangoEncabezados": "A1:Q1",
+    "rangoDatos": "A1:Q7",
+    "rowsFound": 6,
+    "rowsRejected": 0,
+    "rowsReturned": 6,
+    "blankRows": 0,
+    "missingColumns": [
+      "HPT"
+    ],
+    "unrecognizedHeaders": [],
+    "issues": [
+      {
+        "code": "ANCHOR_FOUND",
+        "severity": "INFO",
+        "count": 1
+      },
+      {
+        "code": "COLUMN_MISSING",
+        "severity": "WARNING",
+        "count": 1
+      }
+    ]
+  },
+  "parse": {
+    "accepted": 6,
+    "rejected": 0,
+    "issues": []
+  },
+  "records": [
+    {
+      "fila": 2,
+      "valores": {
+        "RUC": "20600987659",
+        "EMPRESA": "MONTAJES SINTETICOS DEL SUR E.I.R.L.",
+        "CONTRATISTA PRNCIPAL": "CONSORCIO SINTETICO LIMA",
+        "Nro. DNI / CE": "40100002",
+        "APELLIDOS Y NOMBRES": "SALAZAR QUIROZ MILENA BEATRIZ",
+        "FECHA NACIMIENTO": 31218,
+        "TIPO TRABAJADOR": 2,
+        "TITULO DE PUESTO/CARGO": "ASISTENTA SOCIAL",
+        "NOMBRE DE OBRA DONDE ESTA ASIGNADO DURANTE EL MES REPORTADO": "AMPLIACION PLANTA INDUSTRIAL LOTE 7 - LIMA",
+        "DOMICILIO DE TRABAJADOR": "JR. HUARAZ 288",
+        "DISTRITO SEGÚN DNI": "BREÑA",
+        "GENERO": "femenino",
+        "FECHA CESE/BAJA": null,
+        "NACIONALIDAD": "PERUANA",
+        "FECHA INICIO DE LABORES EN OBRA": 44991,
+        "ESTADO": 1,
+        "TIPO DE CONTRATO LABORAL": 1,
+        "HPT": null
+      }
+    },
+    {
+      "fila": 3,
+      "valores": {
+        "RUC": "20600987659",
+        "EMPRESA": "MONTAJES SINTETICOS DEL SUR E.I.R.L.",
+        "CONTRATISTA PRNCIPAL": "CONSORCIO SINTETICO LIMA",
+        "Nro. DNI / CE": "40100004",
+        "APELLIDOS Y NOMBRES": "VILLANUEVA ARCE SANDRA LUCIA",
+        "FECHA NACIMIENTO": 33631,
+        "TIPO TRABAJADOR": 2,
+        "TITULO DE PUESTO/CARGO": "PREVENCIONISTA DE RIESGOS",
+        "NOMBRE DE OBRA DONDE ESTA ASIGNADO DURANTE EL MES REPORTADO": "AMPLIACION PLANTA INDUSTRIAL LOTE 7 - LIMA",
+        "DOMICILIO DE TRABAJADOR": "AV. RIVA AGUERO 902",
+        "DISTRITO SEGÚN DNI": "EL AGUSTINO",
+        "GENERO": "femenino",
+        "FECHA CESE/BAJA": null,
+        "NACIONALIDAD": "PERUANA",
+        "FECHA INICIO DE LABORES EN OBRA": 43773,
+        "ESTADO": 1,
+        "TIPO DE CONTRATO LABORAL": 1,
+        "HPT": null
+      }
+    },
+    {
+      "fila": 4,
+      "valores": {
+        "RUC": "20600987659",
+        "EMPRESA": "MONTAJES SINTETICOS DEL SUR E.I.R.L.",
+        "CONTRATISTA PRNCIPAL": "CONSORCIO SINTETICO LIMA",
+        "Nro. DNI / CE": "40100006",
+        "APELLIDOS Y NOMBRES": "ROJAS PAREDES KATIA MERCEDES",
+        "FECHA NACIMIENTO": 35402,
+        "TIPO TRABAJADOR": 2,
+        "TITULO DE PUESTO/CARGO": "ALMACENERA",
+        "NOMBRE DE OBRA DONDE ESTA ASIGNADO DURANTE EL MES REPORTADO": "AMPLIACION PLANTA INDUSTRIAL LOTE 7 - LIMA",
+        "DOMICILIO DE TRABAJADOR": "AV. CIRCUNVALACION 340",
+        "DISTRITO SEGÚN DNI": "SAN LUIS",
+        "GENERO": "femenino",
+        "FECHA CESE/BAJA": null,
+        "NACIONALIDAD": "PERUANA",
+        "FECHA INICIO DE LABORES EN OBRA": 46027,
+        "ESTADO": 1,
+        "TIPO DE CONTRATO LABORAL": 1,
+        "HPT": null
+      }
+    },
+    {
+      "fila": 5,
+      "valores": {
+        "RUC": "20600987659",
+        "EMPRESA": "MONTAJES SINTETICOS DEL SUR E.I.R.L.",
+        "CONTRATISTA PRNCIPAL": "CONSORCIO SINTETICO LIMA",
+        "Nro. DNI / CE": "40100008",
+        "APELLIDOS Y NOMBRES": "ESCALANTE VARGAS DIEGO MARTIN",
+        "FECHA NACIMIENTO": 37097,
+        "TIPO TRABAJADOR": 2,
+        "TITULO DE PUESTO/CARGO": "AYUDANTE DE OBRA",
+        "NOMBRE DE OBRA DONDE ESTA ASIGNADO DURANTE EL MES REPORTADO": "AMPLIACION PLANTA INDUSTRIAL LOTE 7 - LIMA",
+        "DOMICILIO DE TRABAJADOR": "MZ. K LT. 12 PACHACUTEC",
+        "DISTRITO SEGÚN DNI": "VENTANILLA",
+        "GENERO": "masculino",
+        "FECHA CESE/BAJA": null,
+        "NACIONALIDAD": "PERUANA",
+        "FECHA INICIO DE LABORES EN OBRA": 44452,
+        "ESTADO": 1,
+        "TIPO DE CONTRATO LABORAL": 1,
+        "HPT": null
+      }
+    },
+    {
+      "fila": 6,
+      "valores": {
+        "RUC": "20600987659",
+        "EMPRESA": "MONTAJES SINTETICOS DEL SUR E.I.R.L.",
+        "CONTRATISTA PRNCIPAL": "CONSORCIO SINTETICO LIMA",
+        "Nro. DNI / CE": "40100010",
+        "APELLIDOS Y NOMBRES": "ZEGARRA COAQUIRA NESTOR FELIPE",
+        "FECHA NACIMIENTO": 23134,
+        "TIPO TRABAJADOR": 2,
+        "TITULO DE PUESTO/CARGO": "MAESTRO DE OBRA",
+        "NOMBRE DE OBRA DONDE ESTA ASIGNADO DURANTE EL MES REPORTADO": "AMPLIACION PLANTA INDUSTRIAL LOTE 7 - LIMA",
+        "DOMICILIO DE TRABAJADOR": "JR. AZANGARO 470",
+        "DISTRITO SEGÚN DNI": "CERCADO DE LIMA",
+        "GENERO": "masculino",
+        "FECHA CESE/BAJA": null,
+        "NACIONALIDAD": "PERUANA",
+        "FECHA INICIO DE LABORES EN OBRA": 43773,
+        "ESTADO": 1,
+        "TIPO DE CONTRATO LABORAL": 1,
+        "HPT": null
+      }
+    },
+    {
+      "fila": 7,
+      "valores": {
+        "RUC": "20500123452",
+        "EMPRESA": "SINTETICA ANDINA CONTRATISTAS S.A.C.",
+        "CONTRATISTA PRNCIPAL": "CONSORCIO SINTETICO LIMA",
+        "Nro. DNI / CE": "40100001",
+        "APELLIDOS Y NOMBRES": "QUISPE HUAMANI CARLOS ALBERTO",
+        "FECHA NACIMIENTO": 29295,
+        "TIPO TRABAJADOR": 2,
+        "TITULO DE PUESTO/CARGO": "OPERARIO ELECTRICISTA",
+        "NOMBRE DE OBRA DONDE ESTA ASIGNADO DURANTE EL MES REPORTADO": "AMPLIACION PLANTA INDUSTRIAL LOTE 7 - LIMA",
+        "DOMICILIO DE TRABAJADOR": "AV. NICOLAS AYLLON 1420",
+        "DISTRITO SEGÚN DNI": "ATE",
+        "GENERO": "masculino",
+        "FECHA CESE/BAJA": null,
+        "NACIONALIDAD": "PERUANA",
+        "FECHA INICIO DE LABORES EN OBRA": 45516,
+        "ESTADO": 1,
+        "TIPO DE CONTRATO LABORAL": 1,
+        "HPT": null
+      }
+    }
+  ],
+  "normalizations": null
+}

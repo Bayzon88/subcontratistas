@@ -1,0 +1,56 @@
+{
+  "fixture": "duplicate-header.xlsx",
+  "kind": "workbook",
+  "pathology": "the canonical header ESTADO appears twice - a hard error, not a _1 suffix",
+  "spec": [
+    "03 §1.4 rule 3",
+    "AC 6",
+    "BUG-05"
+  ],
+  "period": "2026-02",
+  "subcontratista": "SINTETICA ANDINA CONTRATISTAS",
+  "read": {
+    "ok": false,
+    "hoja": "Cuadro",
+    "rowsFound": 0,
+    "rowsRejected": 0,
+    "rowsReturned": 0,
+    "blankRows": 0,
+    "missingColumns": [
+      "RUC",
+      "EMPRESA",
+      "CONTRATISTA PRNCIPAL",
+      "Nro. DNI / CE",
+      "APELLIDOS Y NOMBRES",
+      "FECHA NACIMIENTO",
+      "TIPO TRABAJADOR",
+      "TITULO DE PUESTO/CARGO",
+      "NOMBRE DE OBRA DONDE ESTA ASIGNADO DURANTE EL MES REPORTADO",
+      "DOMICILIO DE TRABAJADOR",
+      "DISTRITO SEGÚN DNI",
+      "GENERO",
+      "FECHA CESE/BAJA",
+      "NACIONALIDAD",
+      "FECHA INICIO DE LABORES EN OBRA",
+      "ESTADO",
+      "TIPO DE CONTRATO LABORAL",
+      "HPT"
+    ],
+    "unrecognizedHeaders": [],
+    "issues": [
+      {
+        "code": "ANCHOR_FOUND",
+        "severity": "INFO",
+        "count": 1
+      },
+      {
+        "code": "HEADER_DUPLICATE",
+        "severity": "FAILED",
+        "count": 1
+      }
+    ]
+  },
+  "parse": null,
+  "records": null,
+  "normalizations": null
+}

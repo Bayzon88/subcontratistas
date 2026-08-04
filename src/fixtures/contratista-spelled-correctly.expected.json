@@ -1,0 +1,160 @@
+{
+  "fixture": "contratista-spelled-correctly.xlsx",
+  "kind": "workbook",
+  "pathology": "CONTRATISTA PRINCIPAL - the correct spelling, which the canonical typo would discard",
+  "spec": [
+    "03 §1.3",
+    "AC 3"
+  ],
+  "period": "2026-02",
+  "subcontratista": "MONTAJES SINTETICOS DEL SUR",
+  "read": {
+    "ok": true,
+    "hoja": "Cuadro",
+    "celdaAncla": "A1",
+    "filaEncabezado": 1,
+    "rangoEncabezados": "A1:R1",
+    "rangoDatos": "A1:R6",
+    "rowsFound": 5,
+    "rowsRejected": 0,
+    "rowsReturned": 5,
+    "blankRows": 0,
+    "missingColumns": [],
+    "unrecognizedHeaders": [],
+    "issues": [
+      {
+        "code": "ANCHOR_FOUND",
+        "severity": "INFO",
+        "count": 1
+      },
+      {
+        "code": "HEADER_ALIAS_ACCEPTED",
+        "severity": "INFO",
+        "count": 1
+      }
+    ]
+  },
+  "parse": {
+    "accepted": 5,
+    "rejected": 0,
+    "issues": []
+  },
+  "records": [
+    {
+      "fila": 2,
+      "valores": {
+        "RUC": "20600987659",
+        "EMPRESA": "MONTAJES SINTETICOS DEL SUR E.I.R.L.",
+        "CONTRATISTA PRNCIPAL": "CONSORCIO SINTETICO LIMA",
+        "Nro. DNI / CE": "40100006",
+        "APELLIDOS Y NOMBRES": "ROJAS PAREDES KATIA MERCEDES",
+        "FECHA NACIMIENTO": 35402,
+        "TIPO TRABAJADOR": 2,
+        "TITULO DE PUESTO/CARGO": "ALMACENERA",
+        "NOMBRE DE OBRA DONDE ESTA ASIGNADO DURANTE EL MES REPORTADO": "AMPLIACION PLANTA INDUSTRIAL LOTE 7 - LIMA",
+        "DOMICILIO DE TRABAJADOR": "AV. CIRCUNVALACION 340",
+        "DISTRITO SEGÚN DNI": "SAN LUIS",
+        "GENERO": "femenino",
+        "FECHA CESE/BAJA": null,
+        "NACIONALIDAD": "PERUANA",
+        "FECHA INICIO DE LABORES EN OBRA": 46027,
+        "ESTADO": 1,
+        "TIPO DE CONTRATO LABORAL": 1,
+        "HPT": 160
+      }
+    },
+    {
+      "fila": 3,
+      "valores": {
+        "RUC": "20500123452",
+        "EMPRESA": "SINTETICA ANDINA CONTRATISTAS S.A.C.",
+        "CONTRATISTA PRNCIPAL": "CONSORCIO SINTETICO LIMA",
+        "Nro. DNI / CE": "40100007",
+        "APELLIDOS Y NOMBRES": "MENDIVIL SOTO JORGE ARMANDO",
+        "FECHA NACIMIENTO": 27136,
+        "TIPO TRABAJADOR": 2,
+        "TITULO DE PUESTO/CARGO": "OPERADOR DE MINICARGADOR",
+        "NOMBRE DE OBRA DONDE ESTA ASIGNADO DURANTE EL MES REPORTADO": "AMPLIACION PLANTA INDUSTRIAL LOTE 7 - LIMA",
+        "DOMICILIO DE TRABAJADOR": "CALLE LOS CLAVELES 118",
+        "DISTRITO SEGÚN DNI": "SANTA ANITA",
+        "GENERO": "masculino",
+        "FECHA CESE/BAJA": null,
+        "NACIONALIDAD": "PERUANA",
+        "FECHA INICIO DE LABORES EN OBRA": 42663,
+        "ESTADO": 1,
+        "TIPO DE CONTRATO LABORAL": 1,
+        "HPT": 208
+      }
+    },
+    {
+      "fila": 4,
+      "valores": {
+        "RUC": "20600987659",
+        "EMPRESA": "MONTAJES SINTETICOS DEL SUR E.I.R.L.",
+        "CONTRATISTA PRNCIPAL": "CONSORCIO SINTETICO LIMA",
+        "Nro. DNI / CE": "40100008",
+        "APELLIDOS Y NOMBRES": "ESCALANTE VARGAS DIEGO MARTIN",
+        "FECHA NACIMIENTO": 37097,
+        "TIPO TRABAJADOR": 2,
+        "TITULO DE PUESTO/CARGO": "AYUDANTE DE OBRA",
+        "NOMBRE DE OBRA DONDE ESTA ASIGNADO DURANTE EL MES REPORTADO": "AMPLIACION PLANTA INDUSTRIAL LOTE 7 - LIMA",
+        "DOMICILIO DE TRABAJADOR": "MZ. K LT. 12 PACHACUTEC",
+        "DISTRITO SEGÚN DNI": "VENTANILLA",
+        "GENERO": "masculino",
+        "FECHA CESE/BAJA": null,
+        "NACIONALIDAD": "PERUANA",
+        "FECHA INICIO DE LABORES EN OBRA": 44452,
+        "ESTADO": 1,
+        "TIPO DE CONTRATO LABORAL": 1,
+        "HPT": 152
+      }
+    },
+    {
+      "fila": 5,
+      "valores": {
+        "RUC": "20500123452",
+        "EMPRESA": "SINTETICA ANDINA CONTRATISTAS S.A.C.",
+        "CONTRATISTA PRNCIPAL": "CONSORCIO SINTETICO LIMA",
+        "Nro. DNI / CE": "40100009",
+        "APELLIDOS Y NOMBRES": "LLERENA BAUTISTA PILAR ROSA",
+        "FECHA NACIMIENTO": 32202,
+        "TIPO TRABAJADOR": 2,
+        "TITULO DE PUESTO/CARGO": "TOPOGRAFA",
+        "NOMBRE DE OBRA DONDE ESTA ASIGNADO DURANTE EL MES REPORTADO": "AMPLIACION PLANTA INDUSTRIAL LOTE 7 - LIMA",
+        "DOMICILIO DE TRABAJADOR": "AV. LA PAZ 615",
+        "DISTRITO SEGÚN DNI": "LA PERLA",
+        "GENERO": "femenino",
+        "FECHA CESE/BAJA": null,
+        "NACIONALIDAD": "PERUANA",
+        "FECHA INICIO DE LABORES EN OBRA": 45516,
+        "ESTADO": 1,
+        "TIPO DE CONTRATO LABORAL": 1,
+        "HPT": 176
+      }
+    },
+    {
+      "fila": 6,
+      "valores": {
+        "RUC": "20600987659",
+        "EMPRESA": "MONTAJES SINTETICOS DEL SUR E.I.R.L.",
+        "CONTRATISTA PRNCIPAL": "CONSORCIO SINTETICO LIMA",
+        "Nro. DNI / CE": "40100010",
+        "APELLIDOS Y NOMBRES": "ZEGARRA COAQUIRA NESTOR FELIPE",
+        "FECHA NACIMIENTO": 23134,
+        "TIPO TRABAJADOR": 2,
+        "TITULO DE PUESTO/CARGO": "MAESTRO DE OBRA",
+        "NOMBRE DE OBRA DONDE ESTA ASIGNADO DURANTE EL MES REPORTADO": "AMPLIACION PLANTA INDUSTRIAL LOTE 7 - LIMA",
+        "DOMICILIO DE TRABAJADOR": "JR. AZANGARO 470",
+        "DISTRITO SEGÚN DNI": "CERCADO DE LIMA",
+        "GENERO": "masculino",
+        "FECHA CESE/BAJA": null,
+        "NACIONALIDAD": "PERUANA",
+        "FECHA INICIO DE LABORES EN OBRA": 43773,
+        "ESTADO": 1,
+        "TIPO DE CONTRATO LABORAL": 1,
+        "HPT": 216
+      }
+    }
+  ],
+  "normalizations": null
+}

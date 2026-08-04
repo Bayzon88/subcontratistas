@@ -1,0 +1,146 @@
+[
+  {
+    "why": "the ordinary case: one folder per subcontratista, one workbook inside",
+    "input": { "name": "CONSTRUCTORA ANDINA SAC/lista.xlsx" },
+    "expected": { "kind": "xlsx", "name": "CONSTRUCTORA ANDINA SAC/lista.xlsx", "base": "lista.xlsx" },
+    "expectedIssue": null
+  },
+  {
+    "why": "extension match is case-insensitive",
+    "input": { "name": "Empresa/LISTA.XLSX" },
+    "expected": { "kind": "xlsx", "name": "Empresa/LISTA.XLSX", "base": "LISTA.XLSX" },
+    "expectedIssue": null
+  },
+  {
+    "why": "directory entries carry the folder structure and are extracted as folders",
+    "input": { "name": "Empresa/", "isDirectory": true },
+    "expected": { "kind": "directory", "name": "Empresa/", "base": "Empresa" },
+    "expectedIssue": null
+  },
+  {
+    "why": "'zip -r archive.zip .' emits ./-prefixed names; they are normalized, not refused",
+    "input": { "name": "./Empresa/lista.xlsx" },
+    "expected": { "kind": "xlsx", "name": "Empresa/lista.xlsx", "base": "lista.xlsx" },
+    "expectedIssue": null
+  },
+  {
+    "why": "Windows producers emit backslash separators",
+    "input": { "name": "Empresa\\lista.xlsx" },
+    "expected": { "kind": "xlsx", "name": "Empresa/lista.xlsx", "base": "lista.xlsx" },
+    "expectedIssue": null
+  },
+  {
+    "why": "every macOS zip carries __MACOSX/ - BUG-33's trigger",
+    "input": { "name": "__MACOSX/", "isDirectory": true },
+    "expected": { "kind": "macosx" },
+    "expectedIssue": "SKIPPED_MACOSX"
+  },
+  {
+    "why": "the AppleDouble twin of a real workbook; must never be mistaken for one",
+    "input": { "name": "__MACOSX/Empresa/._lista.xlsx" },
+    "expected": { "kind": "macosx" },
+    "expectedIssue": "SKIPPED_MACOSX"
+  },
+  {
+    "why": "a resource fork can also sit next to the file, outside __MACOSX/",
+    "input": { "name": "Empresa/._lista.xlsx" },
+    "expected": { "kind": "macosx" },
+    "expectedIssue": "SKIPPED_MACOSX"
+  },
+  {
+    "why": "the Excel lock file left by an open workbook - one is in src/reportes/ right now",
+    "input": { "name": "Empresa/~$Reporte_Subcontratistas_FEBRERO_2025.xlsx" },
+    "expected": { "kind": "lockfile", "base": "~$Reporte_Subcontratistas_FEBRERO_2025.xlsx" },
+    "expectedIssue": "SKIPPED_LOCKFILE"
+  },
+  {
+    "why": "a lock file is decided BY NAME before the .xlsx test, so it is never opened",
+    "input": { "name": "~$lista.xlsx" },
+    "expected": { "kind": "lockfile" },
+    "expectedIssue": "SKIPPED_LOCKFILE"
+  },
+  {
+    "why": "the legacy binary format is not readable by this pipeline",
+    "input": { "name": "Empresa/lista.xls" },
+    "expected": { "kind": "other", "base": "lista.xls" },
+    "expectedIssue": "SKIPPED_NON_XLSX"
+  },
+  {
+    "why": "subcontratistas attach scanned documents",
+    "input": { "name": "Empresa/constancia.pdf" },
+    "expected": { "kind": "other" },
+    "expectedIssue": "SKIPPED_NON_XLSX"
+  },
+  {
+    "why": "csv export instead of the requested workbook",
+    "input": { "name": "Empresa/personal.csv" },
+    "expected": { "kind": "other" },
+    "expectedIssue": "SKIPPED_NON_XLSX"
+  },
+  {
+    "why": "photographs of the SCTR certificates",
+    "input": { "name": "Empresa/foto.JPG" },
+    "expected": { "kind": "other" },
+    "expectedIssue": "SKIPPED_NON_XLSX"
+  },
+  {
+    "why": "macOS folder metadata",
+    "input": { "name": "Empresa/.DS_Store" },
+    "expected": { "kind": "other" },
+    "expectedIssue": "SKIPPED_NON_XLSX"
+  },
+  {
+    "why": "zip-slip: the classic escape (BUG-34)",
+    "input": { "name": "../evil.xlsx" },
+    "expected": { "kind": "unsafe", "reason": "parent-directory segment" },
+    "expectedIssue": "ZIP_TRAVERSAL"
+  },
+  {
+    "why": "a .. buried mid-path is still an escape attempt",
+    "input": { "name": "Empresa/../../evil.xlsx" },
+    "expected": { "kind": "unsafe", "reason": "parent-directory segment" },
+    "expectedIssue": "ZIP_TRAVERSAL"
+  },
+  {
+    "why": "a .. that cancels out is still refused - no legitimate producer emits one",
+    "input": { "name": "Empresa/sub/../lista.xlsx" },
+    "expected": { "kind": "unsafe", "reason": "parent-directory segment" },
+    "expectedIssue": "ZIP_TRAVERSAL"
+  },
+  {
+    "why": "absolute POSIX path",
+    "input": { "name": "/etc/cron.d/evil.xlsx" },
+    "expected": { "kind": "unsafe", "reason": "absolute path" },
+    "expectedIssue": "ZIP_TRAVERSAL"
+  },
+  {
+    "why": "absolute Windows path with a drive letter",
+    "input": { "name": "C:/Windows/evil.xlsx" },
+    "expected": { "kind": "unsafe", "reason": "absolute path" },
+    "expectedIssue": "ZIP_TRAVERSAL"
+  },
+  {
+    "why": "backslash form of the same drive-letter path",
+    "input": { "name": "C:\\Windows\\evil.xlsx" },
+    "expected": { "kind": "unsafe", "reason": "absolute path" },
+    "expectedIssue": "ZIP_TRAVERSAL"
+  },
+  {
+    "why": "a null byte would make path.resolve throw further down",
+    "input": { "name": "Empresa/lista\u0000.xlsx" },
+    "expected": { "kind": "unsafe", "reason": "null byte in entry name" },
+    "expectedIssue": "ZIP_TRAVERSAL"
+  },
+  {
+    "why": "a file entry with no name at all",
+    "input": { "name": "" },
+    "expected": { "kind": "unsafe", "reason": "empty entry name" },
+    "expectedIssue": "ZIP_TRAVERSAL"
+  },
+  {
+    "why": "the archive root marker './' is a directory, not an escape",
+    "input": { "name": "./", "isDirectory": true },
+    "expected": { "kind": "directory", "name": "", "base": "" },
+    "expectedIssue": null
+  }
+]

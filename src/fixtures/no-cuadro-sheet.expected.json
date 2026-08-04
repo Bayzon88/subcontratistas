@@ -1,0 +1,56 @@
+{
+  "fixture": "no-cuadro-sheet.xlsx",
+  "kind": "workbook",
+  "pathology": "no sheet resolves to Cuadro; the worker table is on a sheet called PERSONAL",
+  "spec": [
+    "03 §1.4 rule 1",
+    "AC 1",
+    "BUG-01"
+  ],
+  "period": "2026-02",
+  "subcontratista": "SINTETICA ANDINA CONTRATISTAS",
+  "read": {
+    "ok": false,
+    "hoja": null,
+    "rowsFound": 0,
+    "rowsRejected": 0,
+    "rowsReturned": 0,
+    "blankRows": 0,
+    "missingColumns": [
+      "RUC",
+      "EMPRESA",
+      "CONTRATISTA PRNCIPAL",
+      "Nro. DNI / CE",
+      "APELLIDOS Y NOMBRES",
+      "FECHA NACIMIENTO",
+      "TIPO TRABAJADOR",
+      "TITULO DE PUESTO/CARGO",
+      "NOMBRE DE OBRA DONDE ESTA ASIGNADO DURANTE EL MES REPORTADO",
+      "DOMICILIO DE TRABAJADOR",
+      "DISTRITO SEGÚN DNI",
+      "GENERO",
+      "FECHA CESE/BAJA",
+      "NACIONALIDAD",
+      "FECHA INICIO DE LABORES EN OBRA",
+      "ESTADO",
+      "TIPO DE CONTRATO LABORAL",
+      "HPT"
+    ],
+    "unrecognizedHeaders": [],
+    "issues": [
+      {
+        "code": "SHEET_NOT_FOUND",
+        "severity": "FAILED",
+        "count": 1
+      }
+    ],
+    "hojasPresentes": [
+      "Hoja1",
+      "PERSONAL",
+      "Resumen"
+    ]
+  },
+  "parse": null,
+  "records": null,
+  "normalizations": null
+}

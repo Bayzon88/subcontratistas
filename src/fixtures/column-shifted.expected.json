@@ -1,0 +1,92 @@
+{
+  "fixture": "column-shifted.xlsx",
+  "kind": "workbook",
+  "pathology": "eight rows with A-D empty and a RUC number in APELLIDOS Y NOMBRES, plus two intact rows",
+  "spec": [
+    "03 §2.3",
+    "AC 14",
+    "BUG-04"
+  ],
+  "period": "2026-02",
+  "subcontratista": "SINTETICA ANDINA CONTRATISTAS",
+  "read": {
+    "ok": true,
+    "hoja": "Cuadro",
+    "celdaAncla": "A1",
+    "filaEncabezado": 1,
+    "rangoEncabezados": "A1:R1",
+    "rangoDatos": "A1:R11",
+    "rowsFound": 10,
+    "rowsRejected": 8,
+    "rowsReturned": 2,
+    "blankRows": 0,
+    "missingColumns": [],
+    "unrecognizedHeaders": [],
+    "issues": [
+      {
+        "code": "ANCHOR_FOUND",
+        "severity": "INFO",
+        "count": 1
+      },
+      {
+        "code": "ROW_NUMERIC_NAME",
+        "severity": "ERROR",
+        "count": 8
+      }
+    ]
+  },
+  "parse": {
+    "accepted": 2,
+    "rejected": 0,
+    "issues": []
+  },
+  "records": [
+    {
+      "fila": 10,
+      "valores": {
+        "RUC": "20500123452",
+        "EMPRESA": "SINTETICA ANDINA CONTRATISTAS S.A.C.",
+        "CONTRATISTA PRNCIPAL": "CONSORCIO SINTETICO LIMA",
+        "Nro. DNI / CE": "40100009",
+        "APELLIDOS Y NOMBRES": "LLERENA BAUTISTA PILAR ROSA",
+        "FECHA NACIMIENTO": 32202,
+        "TIPO TRABAJADOR": 2,
+        "TITULO DE PUESTO/CARGO": "TOPOGRAFA",
+        "NOMBRE DE OBRA DONDE ESTA ASIGNADO DURANTE EL MES REPORTADO": "AMPLIACION PLANTA INDUSTRIAL LOTE 7 - LIMA",
+        "DOMICILIO DE TRABAJADOR": "AV. LA PAZ 615",
+        "DISTRITO SEGÚN DNI": "LA PERLA",
+        "GENERO": "femenino",
+        "FECHA CESE/BAJA": null,
+        "NACIONALIDAD": "PERUANA",
+        "FECHA INICIO DE LABORES EN OBRA": 45516,
+        "ESTADO": 1,
+        "TIPO DE CONTRATO LABORAL": 1,
+        "HPT": 176
+      }
+    },
+    {
+      "fila": 11,
+      "valores": {
+        "RUC": "20600987659",
+        "EMPRESA": "MONTAJES SINTETICOS DEL SUR E.I.R.L.",
+        "CONTRATISTA PRNCIPAL": "CONSORCIO SINTETICO LIMA",
+        "Nro. DNI / CE": "40100010",
+        "APELLIDOS Y NOMBRES": "ZEGARRA COAQUIRA NESTOR FELIPE",
+        "FECHA NACIMIENTO": 23134,
+        "TIPO TRABAJADOR": 2,
+        "TITULO DE PUESTO/CARGO": "MAESTRO DE OBRA",
+        "NOMBRE DE OBRA DONDE ESTA ASIGNADO DURANTE EL MES REPORTADO": "AMPLIACION PLANTA INDUSTRIAL LOTE 7 - LIMA",
+        "DOMICILIO DE TRABAJADOR": "JR. AZANGARO 470",
+        "DISTRITO SEGÚN DNI": "CERCADO DE LIMA",
+        "GENERO": "masculino",
+        "FECHA CESE/BAJA": null,
+        "NACIONALIDAD": "PERUANA",
+        "FECHA INICIO DE LABORES EN OBRA": 43773,
+        "ESTADO": 1,
+        "TIPO DE CONTRATO LABORAL": 1,
+        "HPT": 216
+      }
+    }
+  ],
+  "normalizations": null
+}
