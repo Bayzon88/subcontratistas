@@ -1,28 +1,350 @@
+/*
+  Escrita a mano y servida por el mismo proceso. La pagina antes cargaba Bootstrap, Popper
+  y axios desde tres CDN distintos, lo que la dejaba inutilizable sin internet
+  (05-implementation-plan.md Fase 6 tarea 7). Nada aqui necesita un paso de build.
+*/
+
+:root {
+  --tinta: #1f2933;
+  --suave: #5b6875;
+  --borde: #d3dae1;
+  --fondo: #f4f6f8;
+  --panel: #ffffff;
+  --verde: #1f7a3d;
+  --verde-claro: #e6f4ea;
+  --rojo: #b3261e;
+  --rojo-claro: #fdecea;
+  --ambar: #8a6100;
+  --ambar-claro: #fff6e0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
 body {
-  font-family: Arial, sans-serif;
-  text-align: center;
+  margin: 0;
+  padding: 0 1rem 3rem;
+  background: var(--fondo);
+  color: var(--tinta);
+  font: 16px/1.5 system-ui, -apple-system, "Segoe UI", Arial, sans-serif;
+}
+
+header {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 1.75rem 0 1rem;
 }
 
 h1 {
-  margin-top: 20px;
+  margin: 0;
+  font-size: 1.75rem;
 }
 
-.progress-container {
-  width: 50%;
-  margin: 20px auto;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  padding: 5px;
+h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.05rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--suave);
 }
 
-.progress-bar {
-  height: 30px;
-  background-color: #4caf50;
+.sub {
+  margin: 0.35rem 0 0;
+  color: var(--suave);
+}
+
+main {
+  max-width: 1080px;
+  margin: 0 auto;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  align-items: flex-start;
+}
+
+.panel {
+  background: var(--panel);
+  border: 1px solid var(--borde);
+  border-radius: 8px;
+  padding: 1.25rem;
+  flex: 1 1 380px;
+  min-width: 300px;
+}
+
+#panel-instrucciones ul,
+#panel-instrucciones ol {
+  margin: 0 0 1.25rem;
+  padding-left: 1.25rem;
+}
+
+#panel-instrucciones li {
+  margin-bottom: 0.35rem;
+}
+
+/* ---- periodo ---- */
+
+.periodo {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.periodo label {
+  display: flex;
+  flex-direction: column;
+  font-size: 0.85rem;
+  color: var(--suave);
+  gap: 0.25rem;
+  flex: 1 1 140px;
+}
+
+select {
+  font: inherit;
+  padding: 0.5rem;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  background: #fff;
+  color: var(--tinta);
+}
+
+.nota {
+  margin: 0.6rem 0 0;
+  font-size: 0.9rem;
+  color: var(--suave);
+}
+
+.nota.error {
+  color: var(--rojo);
+  font-weight: 600;
+}
+
+/* ---- zona de archivo ---- */
+
+.zona {
+  margin-top: 1.25rem;
+  border: 2px dashed var(--borde);
+  border-radius: 8px;
+  min-height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 1rem;
+  cursor: pointer;
+  background: #fbfcfd;
+}
+
+.zona.encima {
+  border-color: var(--verde);
+  background: var(--verde-claro);
+}
+
+.zona.cargado {
+  border-style: solid;
+  border-color: var(--verde);
+}
+
+.zona input[type="file"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.zona label {
+  cursor: pointer;
+  color: var(--suave);
+  font-size: 1.05rem;
+}
+
+/* ---- boton ---- */
+
+button {
+  font: inherit;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+}
+
+button.principal {
+  margin-top: 1rem;
+  width: 100%;
+  background: var(--verde);
+  border-color: var(--verde);
+  color: #fff;
+  font-weight: 600;
+}
+
+button.principal:disabled {
+  background: #9aa5b1;
+  border-color: #9aa5b1;
+  cursor: not-allowed;
+}
+
+button.secundario {
+  background: #fff;
+  border-color: var(--borde);
+  color: var(--tinta);
+}
+
+a.descarga {
+  display: inline-block;
+  margin-top: 0.75rem;
+  background: var(--verde);
+  color: #fff;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 0.6rem 1rem;
+  border-radius: 6px;
+}
+
+/* ---- avance ---- */
+
+.avance {
+  margin-top: 1.25rem;
+}
+
+.barra {
+  height: 12px;
+  border-radius: 6px;
+  background: #e4e8ec;
+  overflow: hidden;
+}
+
+.barra-relleno {
+  height: 100%;
   width: 0;
-  border-radius: 5px;
-  transition: width 0.3s ease-in-out;
+  background: var(--verde);
+  transition: width 0.25s ease-out;
 }
 
-.progress-text {
-  line-height: 30px;
+.barra-relleno.indeterminado {
+  width: 100%;
+  background: repeating-linear-gradient(
+    90deg,
+    var(--verde) 0 12px,
+    #7cb896 12px 24px
+  );
+}
+
+.fase {
+  margin: 0.5rem 0 0;
+  font-weight: 600;
+}
+
+.detalle {
+  margin: 0.15rem 0 0;
+  color: var(--suave);
+  font-size: 0.9rem;
+  word-break: break-word;
+}
+
+/* ---- resultado ---- */
+
+.resultado {
+  margin-top: 1.25rem;
+  border-radius: 8px;
+  padding: 1rem;
+  border: 1px solid var(--borde);
+}
+
+.resultado.ok {
+  background: var(--verde-claro);
+  border-color: #b7dfc4;
+}
+
+.resultado.fallo {
+  background: var(--rojo-claro);
+  border-color: #f3c2bd;
+}
+
+.resultado h3 {
+  margin: 0 0 0.5rem;
+  font-size: 1.1rem;
+}
+
+.resultado.fallo h3 {
+  color: var(--rojo);
+}
+
+.cifras {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin: 0.75rem 0;
+  padding: 0;
+  list-style: none;
+}
+
+.cifras li {
+  background: #fff;
+  border: 1px solid var(--borde);
+  border-radius: 6px;
+  padding: 0.5rem 0.75rem;
+  min-width: 110px;
+}
+
+.cifras .valor {
+  display: block;
+  font-size: 1.35rem;
+  font-weight: 700;
+}
+
+.cifras .rotulo {
+  font-size: 0.78rem;
+  color: var(--suave);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+/* Un subcontratista fallido es un reporte incompleto: no puede pasar desapercibido
+   (03-expected-output.md seccion 8). */
+.fallidos {
+  background: var(--ambar-claro);
+  border: 1px solid #edd9a3;
+  border-left: 5px solid var(--ambar);
+  border-radius: 6px;
+  padding: 0.75rem;
+  margin: 0.75rem 0;
+}
+
+.fallidos h4 {
+  margin: 0 0 0.35rem;
+  color: var(--ambar);
+}
+
+.fallidos ul {
+  margin: 0;
+  padding-left: 1.2rem;
+}
+
+.resultado.fallo .fallidos {
+  background: #fff;
+  border-left-color: var(--rojo);
+}
+
+.resultado.fallo .fallidos h4 {
+  color: var(--rojo);
+}
+
+pre.detalle-tecnico {
+  margin: 0.75rem 0 0;
+  padding: 0.6rem;
+  background: #2d333b;
+  color: #e6edf3;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  max-height: 220px;
+  overflow: auto;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+details summary {
+  cursor: pointer;
+  color: var(--suave);
+  font-size: 0.9rem;
 }

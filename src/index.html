@@ -1,102 +1,95 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
-    <link
-      rel="stylesheet"
-      href="	https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
-    />
-
-    <link href="https://cdn.jsdelivr.net/npm/@n8n/chat/dist/style.css" rel="stylesheet" />
-    <style>
-      .label-text {
-        height: 100px;
-        cursor: inherit;
-      }
-      #drop-area {
-        height: 600px;
-        cursor: pointer;
-      }
-    </style>
+    <!-- Era <title>Document</title> (BUG-54). -->
+    <title>Consolidar subcontratistas</title>
+    <!--
+      Sin Bootstrap, sin Popper, sin axios: la pagina cargaba tres CDN distintos y era
+      inusable sin internet (05 Fase 6 tarea 7). Todo lo que necesita esta en
+      public/styles.css y public/js/index.js, servidos por el mismo proceso.
+    -->
+    <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
-    <h1>Consolidar subcontratistas</h1>
-    <!-- Bootstrap Form Group -->
-    <div class="d-flex gap-3">
-      <div class="d-flex w-50 flex-column ">
-        <div>
-          <h4>*Importante: </h4>
-          <ul>
-            <li>El archivo debe estar en formato zip</li>
-            <li>El archivo debe estar en formato zip</li>
-          </ul>
-        </div>
-        <h2>Instrucciones:</h2>
+    <header>
+      <h1>Consolidar subcontratistas</h1>
+      <p class="sub">
+        Reporte mensual de personal &mdash; un archivo Excel por periodo.
+      </p>
+    </header>
+
+    <main>
+      <section class="panel" id="panel-instrucciones">
+        <h2>Importante</h2>
+        <ul>
+          <li>El archivo debe estar en formato <strong>.zip</strong>.</li>
+          <li>
+            Dentro del zip debe haber <strong>una carpeta por subcontratista</strong>, y
+            dentro de cada carpeta su archivo <strong>.xlsx</strong>.
+          </li>
+          <li>
+            El <strong>periodo</strong> que elija abajo decide los numeros y el nombre del
+            archivo. No se deduce de la fecha de hoy.
+          </li>
+          <li>Solo se puede procesar un periodo a la vez.</li>
+        </ul>
+
+        <h2>Instrucciones</h2>
         <ol>
-          <li> Ingresar a alvarobeltran.dev</li>
-          <li> Seleccionar o arrastrar archivo hacia donde dice "Arrastrelo aqui"</li>
-          <li> Si hiciste click en "seleccione archivo" Se abre una ventana para buscar archivo, elegir el archivo zip y hacer click en aceptar(abrir)</li>
-          <li> Si el archivo se selecciono correctamente, aparecera "Archivo seleccionado: nombre de archivo.zip"</li>
-
-          <li> Hacer click en procesar</li>
-          <li> Esperar a que procese el archivo</li>
-          <li> Una vez terminado el proceso, aparecera un boton para "Descargar Archivo"</li>
-          <li> Hacer click en "Descargar Archivo"</li>
-          <li> Seleccionar folder en donde se guardara el archivo y hacer click en guardar</li>
+          <li>Elegir el mes y el a&ntilde;o del reporte.</li>
+          <li>Seleccionar el archivo zip o arrastrarlo al recuadro.</li>
+          <li>Hacer clic en <strong>Procesar</strong>.</li>
+          <li>
+            Esperar. El avance se muestra en pantalla; puede tardar varios minutos si son
+            muchos subcontratistas.
+          </li>
+          <li>
+            Al terminar aparece el resumen y el bot&oacute;n
+            <strong>Descargar reporte</strong>.
+          </li>
+          <li>
+            Revisar el resumen: si alg&uacute;n subcontratista aparece como
+            <strong>fallido</strong>, el reporte est&aacute; incompleto y hay que pedirle el
+            archivo corregido.
+          </li>
         </ol>
-      </div>
-      <div class="d-flex w-50">
+      </section>
 
-        <form method="post" action="/uploadfiles" enctype="multipart/form-data">
-          <div class="m-auto w-100">
-            <div
-            class="border border-1 rounded-2 d-flex justify-content-center align-items-center mt-5"
-            id="drop-area"
-            >
-            <label id="" for="myfiles" class="form-label fs-1 label-text text-center"
-            >Seleccione Archivo o arrastrelo aqui
+      <section class="panel" id="panel-formulario">
+        <h2>Periodo del reporte</h2>
+        <div class="periodo">
+          <label>
+            Mes
+            <select id="mes"></select>
           </label>
-          <input
-          class="form-control form-control-lg d-none"
-          id="myfiles"
-          name="zipFile"
-          type="file"
-          />
+          <label>
+            A&ntilde;o
+            <select id="anio"></select>
+          </label>
         </div>
-        <div class="w-100 d-flex justify-content-end mt-3">
-          <input
-          id="submit-files"
-          type="submit"
-          value="Procesar"
-          accept=".zip"
-          class="btn btn-success w-100"
-          />
-        </div>
-      </div>
-    </div>
-    </form>
-    </div>
-    <div class="w-100 d-flex justify-content-center mt-5" id="btn-container"></div>
+        <p class="nota" id="periodo-nota"></p>
 
-    <script type="module"></script>
-    <script
-      src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
-      integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
-      crossorigin="anonymous"
-    ></script>
-    <script
-      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.min.js"
-      integrity="sha384-BBtl+eGJRgqQAUMxJ7pMwbEyER4l1g+O15P+16Ep7Q9Q+zqX6gSbd85u4mG4QzX+"
-      crossorigin="anonymous"
-    ></script>
-    <script
-      src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.5.1/axios.min.js"
-      integrity="sha512-emSwuKiMyYedRwflbZB2ghzX8Cw8fmNVgZ6yQNNXXagFzFOaQmbvQ1vmDkddHjm5AITcBIZfC7k4ShQSjgPAmQ=="
-      crossorigin="anonymous"
-      referrerpolicy="no-referrer"
-    ></script>
+        <div id="zona" class="zona">
+          <input id="archivo" name="zipFile" type="file" accept=".zip,application/zip" />
+          <label id="etiqueta-archivo" for="archivo">
+            Seleccione el archivo .zip o arr&aacute;strelo aqu&iacute;
+          </label>
+        </div>
+
+        <button id="procesar" type="button" class="principal">Procesar</button>
+
+        <div id="avance" class="avance" hidden>
+          <div class="barra"><div class="barra-relleno" id="barra"></div></div>
+          <p class="fase" id="fase">Iniciando&hellip;</p>
+          <p class="detalle" id="detalle"></p>
+        </div>
+
+        <div id="resultado" class="resultado" hidden></div>
+      </section>
+    </main>
+
     <script src="js/index.js"></script>
   </body>
 </html>
