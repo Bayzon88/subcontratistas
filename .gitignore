@@ -1,4 +1,25 @@
-/node_modules/
-/subcontratistas/
+node_modules/
 .env
 
+# Extraction targets. The old path was src/subcontratistas/; the rework extracts to a
+# per-run temp directory under config.TMP_ROOT and removes it in a finally on every path.
+# Note the old rule was "/subcontratistas/" - root-anchored, so it never actually ignored
+# src/subcontratistas/, which is where the app extracted (Phase 6 task 5).
+subcontratistas/
+src/subcontratistas/
+tmp/
+
+# Generated reports and their metrics side-cars. Deliverables, not source.
+src/reportes/
+
+# Excel lock files and macOS junk
+~$*.xlsx
+.DS_Store
+
+# ...except the ones the fixture corpus deliberately contains. src/fixtures/ is generated
+# by tools/build-fixtures.js and COMMITTED (05 Phase 0 task 2): the lock-file container
+# fixture only tests anything if the ~$ file is actually there.
+!src/fixtures/**/~$*.xlsx
+
+# Scratch
+_scratch_*.js
