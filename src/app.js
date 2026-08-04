@@ -2,13 +2,11 @@ if (process.env.NODE_ENV !== "production") {
     require("dotenv").config(); //Load the .env file
 }
 //Library Imports
-const axios = require("axios");
 const path = require('path');
 const express = require("express");
 const AdmZip = require("adm-zip");
 const fs = require("fs");
 const fileUpload = require("express-fileupload");
-const ejs = require('ejs');
 const app = express();
 
 //Modules
@@ -16,7 +14,7 @@ const { getCurrentProgress, consolidateExcelFile } = require("./excelConsolidati
 const { writeDataToWorksheet } = require("./excelReporting")
 
 //Environmental Variables 
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 50001;
 const uploadDestination = process.env.DATAFOLDER_URL || "subcontratistas";
 
 //TODO: Separate routing 
@@ -27,19 +25,6 @@ const uploadDestination = process.env.DATAFOLDER_URL || "subcontratistas";
 
 //Serve all public files
 app.use(express.static(path.join(__dirname, "../", '/public')));
-
-
-
-//******************************************* EJS IMPLEMENTATION *******************************************/
-// Set the view engine to EJS
-app.set('view engine', 'ejs');
-
-// Define a route that renders the EJS template
-app.get('/ejs', (req, res) => {
-    res.render('progress', { message: 'Hello, EJS!' });
-
-});
-//*********************************************************************************************************/
 
 
 

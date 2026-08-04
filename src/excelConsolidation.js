@@ -2,7 +2,6 @@
 const reader = require("xlsx");
 const fs = require("fs");
 const path = require("path");
-var _ = require("lodash");
 
 
 let progress = 1;
