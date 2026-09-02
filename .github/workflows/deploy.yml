@@ -28,13 +28,15 @@ env:
   APP_PORT: "50001"
 
   # --- Traefik integration -------------------------------------------------------
-  # VERIFY THESE THREE against a service that already routes (see deploy/README note).
-  # The network must be the one Traefik itself is attached to, or discovery silently
-  # finds nothing; the resolver must match the one the other routers use, or the cert
-  # request fails.
+  # entrypoint, resolver and the <name>.<domain> host pattern all match the existing
+  # prometheus service. TRAEFIK_NETWORK must be the network Traefik itself is attached
+  # to or discovery silently finds nothing.
   TRAEFIK_NETWORK: homelab_default
   APP_HOST: subcontratistas.alvarobeltran.dev
   CERT_RESOLVER: letsencrypt
+  # The app ships no authentication of its own; see deploy/run-container.sh. Empty
+  # serves it open on the public hostname.
+  TRAEFIK_MIDDLEWARES: traefik-auth
 
 jobs:
   deploy:
