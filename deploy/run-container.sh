@@ -7,10 +7,16 @@
 # be added twice, and a rollback that drifted from the deploy would quietly serve the
 # old image with the wrong routing.
 #
-# Usage: run-container.sh <image>
+# Usage: run-container.sh <image>   start the container
+#        run-container.sh --check   validate configuration only, change nothing
+#
+# --check exists so deploy.yml can fail a misconfiguration before the build and the
+# test suite run, and - because every later step is then skipped rather than failed -
+# so the rollback step does not report a failure for a deploy that never touched the
+# running container.
 set -euo pipefail
 
-image="${1:?usage: run-container.sh <image>}"
+mode="${1:?usage: run-container.sh <image> | --check}"
 
 : "${CONTAINER:?}" "${APP_PORT:?}" "${HOST_PORT:?}"
 : "${TRAEFIK_NETWORK:?}" "${CERT_RESOLVER:?}" "${APP_SUBDOMAIN:?}"
@@ -30,6 +36,12 @@ if ! docker network inspect "$TRAEFIK_NETWORK" >/dev/null 2>&1; then
     docker network ls --format '  {{.Name}}' >&2
     exit 1
 fi
+
+if [[ "$mode" == "--check" ]]; then
+    echo "configuration ok: https://${APP_SUBDOMAIN}.${DOMAIN} -> $CONTAINER:$APP_PORT on $TRAEFIK_NETWORK"
+    exit 0
+fi
+image="$mode"
 
 docker rm -f "$CONTAINER" 2>/dev/null || true
 

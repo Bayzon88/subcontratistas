@@ -68,6 +68,13 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # Before the build and the test suite, because a missing DOMAIN or a wrong
+      # network is knowable in a second and otherwise surfaces ninety seconds later.
+      # Failing here also skips the swap, which is what keeps the rollback step from
+      # reporting a failure for a deploy that never touched the running container.
+      - name: Check the deploy configuration
+        run: deploy/run-container.sh --check
+
       - name: Build image
         run: |
           docker build \
