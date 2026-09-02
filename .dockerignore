@@ -1,0 +1,28 @@
+# Build-context exclusions. src/ is 137 MB on disk but only ~14 MB is tracked source;
+# the rest is generated output that must not enter the image.
+
+.git
+.github
+node_modules
+
+# Generated / runtime, all gitignored. src/reportes alone is 125 MB locally.
+# NOTE: src/output/ is NOT here - despite the name it is tracked application source
+# (computed, consolidated, metrics, ooxml, runReport, template). Excluding it breaks
+# ten test files with "Cannot find module '../output/computed'".
+src/reportes/
+src/subcontratistas/
+subcontratistas/
+tmp/
+
+# Host-side only: nginx configs and the rework design docs are not needed at run time.
+deploy/
+rework-plan/
+
+.env
+*.log
+_scratch_*.js
+
+# Excel lock files - except the one the fixture corpus deliberately contains. The
+# lock-file container fixture only tests anything if the ~$ file actually ships.
+~$*.xlsx
+!src/fixtures/**/~$*.xlsx

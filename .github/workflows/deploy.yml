@@ -1,0 +1,112 @@
+# Deploy to the box the self-hosted runner lives on.
+#
+# The runner needs docker and permission to use it (the runner user in the `docker`
+# group); it does NOT need Node installed - the tests run inside the image that is
+# about to be deployed, so what is tested is exactly what is served.
+#
+# This replaces the pm2 path in subcontratistas.yml for the production branch.
+
+name: Deploy production
+
+on:
+  push:
+    branches: ["production"]
+  workflow_dispatch:
+
+# Never let two deploys race over the same container name.
+concurrency:
+  group: deploy-production
+  cancel-in-progress: false
+
+env:
+  IMAGE: subcontratistas
+  CONTAINER: subcontratistas
+  # deploy/nginx-subcontratistas.conf proxies to localhost:3000, so that is the host
+  # side. Bound to 127.0.0.1 so the app is only reachable through nginx.
+  HOST_PORT: "3000"
+  # config.js: PORT defaults to 50001.
+  APP_PORT: "50001"
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build image
+        run: |
+          docker build \
+            -t "$IMAGE:${{ github.sha }}" \
+            -t "$IMAGE:latest" \
+            .
+
+      # The gate. Fixture corpus + pure-function case tables + structural assertions on
+      # the generated workbook, run in the built image. A failure here stops the deploy
+      # and leaves the currently running container untouched.
+      - name: Run the test suite inside the image
+        run: docker run --rm --init "$IMAGE:${{ github.sha }}" npm test
+
+      # Remember what is serving right now so a failed health check can put it back.
+      - name: Record the running image
+        id: previous
+        run: |
+          prev="$(docker inspect --format '{{.Image}}' "$CONTAINER" 2>/dev/null || true)"
+          echo "image=$prev" >> "$GITHUB_OUTPUT"
+          echo "previous image: ${prev:-none}"
+
+      - name: Swap the container
+        id: swap
+        run: |
+          docker rm -f "$CONTAINER" 2>/dev/null || true
+          # --init: server.js forks src/cli.js per run, and PID 1 has to reap it.
+          # No volume: every run is self-contained and the report is downloaded, not kept.
+          docker run -d \
+            --name "$CONTAINER" \
+            --init \
+            --restart unless-stopped \
+            -p "127.0.0.1:$HOST_PORT:$APP_PORT" \
+            -e NODE_ENV=production \
+            -e PORT="$APP_PORT" \
+            "$IMAGE:${{ github.sha }}"
+
+      - name: Wait for the container to report healthy
+        id: health
+        run: |
+          for i in $(seq 1 30); do
+            status="$(docker inspect --format '{{.State.Health.Status}}' "$CONTAINER" 2>/dev/null || echo missing)"
+            case "$status" in
+              healthy) echo "healthy after ${i}0s"; exit 0 ;;
+              unhealthy) echo "container reported unhealthy"; exit 1 ;;
+            esac
+            sleep 10
+          done
+          echo "timed out waiting for health (last status: ${status:-unknown})"
+          exit 1
+
+      - name: Show logs on failure
+        if: failure() && steps.swap.outcome != 'skipped'
+        run: docker logs --tail 200 "$CONTAINER" || true
+
+      # Only after a swap was actually attempted - a build or test failure leaves the
+      # running container untouched and must not restart it. If there was no previous
+      # image (first deploy) there is nothing to roll back to.
+      - name: Roll back to the previous image
+        if: failure() && steps.swap.outcome != 'skipped' && steps.previous.outputs.image != ''
+        run: |
+          docker rm -f "$CONTAINER" 2>/dev/null || true
+          docker run -d \
+            --name "$CONTAINER" \
+            --init \
+            --restart unless-stopped \
+            -p "127.0.0.1:$HOST_PORT:$APP_PORT" \
+            -e NODE_ENV=production \
+            -e PORT="$APP_PORT" \
+            "${{ steps.previous.outputs.image }}"
+          echo "rolled back to ${{ steps.previous.outputs.image }}"
+
+      # Untagged layers from earlier builds only. Named images are left alone so the
+      # rollback target above stays on disk.
+      - name: Prune dangling images
+        if: always()
+        run: docker image prune -f
