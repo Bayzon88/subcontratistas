@@ -577,10 +577,32 @@ test("the module reads no clock", () => {
     }
 });
 
-test("5,000 rows parse well under a second", () => {
-    // 05 §3 Phase 2 verification: safeParse over 5,065 synthetic rows was measured at
-    // 11.9 ms in the research, so there is no performance argument for bailing early on
-    // the first bad cell.
+// The budget is deliberately loose, and that needs saying, because the obvious reading
+// of this test - "parsing 5,000 rows takes about 11.9 ms" - is wrong and cost a green CI
+// run once already.
+//
+// The 11.9 ms in 05 §3 Phase 2 is raw `safeParse` over a bare shape. What parseRow
+// actually does per row is that plus the per-domain normalizers, provenance and the
+// issue list, which measures ~0.06 ms/row - so 5,000 rows is ~280 ms isolated on a fast
+// dev box and ~590 ms inside the full suite, where 25 test files compete for the same
+// cores. The old ceiling of 1000 ms was therefore never a performance assertion; it was
+// 1.7x away from the real number on the FASTEST machine that runs it, and a self-hosted
+// runner measured 3.2x slower than that box turned it red at ~1875 ms.
+//
+// Be honest about what a 5,000 ms ceiling buys, because it is less than it looks. A
+// wall clock cannot both absorb 3-5x machine variance and catch a modest regression;
+// those are the same axis. Measured: a simulated 10x per-row regression comes to
+// ~2,180 ms isolated, which this ceiling does NOT catch on a fast dev box - though at
+// the runner's 3.2x it lands near 7,000 ms and does. What it reliably catches is a
+// change of ORDER, an accidental O(n^2) over 5,000 rows being seconds to minutes.
+//
+// Per-row cost is flat from 1,250 to 20,000 rows (0.070 -> 0.048 ms/row, improving with
+// JIT warmup), so linearity holds today. The real guard against slow drift is the
+// printed measurement below, not the assertion: it shows up in every CI log, so a
+// per-row cost that doubles is visible long before anything turns red.
+const PARSE_BUDGET_MS = 5000;
+
+test("5,000 rows parse in linear time, so there is no case for bailing on the first bad cell", () => {
     const templates = TABLE.cases.filter(c => c.expectedOk !== false).map(c => row(c.input));
     const rows = [];
     for (let i = 0; i < 5000; i++) {
@@ -599,7 +621,10 @@ test("5,000 rows parse well under a second", () => {
     const ms = Number(process.hrtime.bigint() - t0) / 1e6;
 
     assert.equal(accepted, 5000, "every synthetic row is accepted");
-    assert.ok(ms < 1000, `5,000 rows took ${ms.toFixed(1)} ms, expected well under 1000`);
+    console.log(`      # 5,000 rows parsed in ${ms.toFixed(1)} ms (${(ms / 5000).toFixed(4)} ms/row, budget ${PARSE_BUDGET_MS} ms)`);
+    assert.ok(ms < PARSE_BUDGET_MS,
+        `5,000 rows took ${ms.toFixed(1)} ms (${(ms / 5000).toFixed(4)} ms/row), over the ${PARSE_BUDGET_MS} ms ceiling. ` +
+        `That is an order-of-magnitude change, not a slow machine - check parseRow for an accidental O(n^2).`);
 });
 
 test("5,000 rows produce zero NaN and zero \"undefined\" in the output", () => {
