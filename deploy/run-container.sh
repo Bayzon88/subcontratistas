@@ -22,6 +22,15 @@ image="${1:?usage: run-container.sh <image>}"
 # request that can never pass - so fail here instead.
 : "${DOMAIN:?set the DOMAIN repository variable (Settings > Secrets and variables > Actions > Variables)}"
 
+# A wrong network name would otherwise surface only after the running container had
+# been removed - and the rollback runs this same script, so it would fail the same way
+# and leave nothing serving at all. Check while the old container is still up.
+if ! docker network inspect "$TRAEFIK_NETWORK" >/dev/null 2>&1; then
+    echo "network '$TRAEFIK_NETWORK' does not exist on this host. Available:" >&2
+    docker network ls --format '  {{.Name}}' >&2
+    exit 1
+fi
+
 docker rm -f "$CONTAINER" 2>/dev/null || true
 
 # Traefik does NOT reach the app through the published host port. It resolves the
