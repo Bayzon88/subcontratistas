@@ -15,7 +15,10 @@ on:
 
 jobs:
   test:
-    runs-on: self-hosted
+    # Pinned for the same reason as deploy.yml: with a bare `self-hosted` label a push
+    # to main could pm2-start the app on whichever runner is idle, including the Pi
+    # that no longer serves it.
+    runs-on: [self-hosted, pn-60b]
 
     strategy:
       matrix:
@@ -38,7 +41,7 @@ jobs:
 
   deploy:
     needs: test
-    runs-on: self-hosted
+    runs-on: [self-hosted, pn-60b]
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
 
     steps:
