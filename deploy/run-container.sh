@@ -13,7 +13,14 @@ set -euo pipefail
 image="${1:?usage: run-container.sh <image>}"
 
 : "${CONTAINER:?}" "${APP_PORT:?}" "${HOST_PORT:?}"
-: "${TRAEFIK_NETWORK:?}" "${APP_HOST:?}" "${CERT_RESOLVER:?}"
+: "${TRAEFIK_NETWORK:?}" "${CERT_RESOLVER:?}" "${APP_SUBDOMAIN:?}"
+
+# Composed rather than spelled out, from the same DOMAIN the homelab compose stack
+# uses. An unset repository variable expands to the empty string, which would build the
+# host "subcontratistas." and hand Traefik a route that can never match and a cert
+# request that can never pass - so fail here instead.
+: "${DOMAIN:?set the DOMAIN repository variable (Settings > Secrets and variables > Actions > Variables)}"
+app_host="${APP_SUBDOMAIN}.${DOMAIN}"
 
 docker rm -f "$CONTAINER" 2>/dev/null || true
 
@@ -28,7 +35,7 @@ docker rm -f "$CONTAINER" 2>/dev/null || true
 labels=(
     --label "traefik.enable=true"
     --label "traefik.docker.network=$TRAEFIK_NETWORK"
-    --label "traefik.http.routers.$CONTAINER.rule=Host(\`$APP_HOST\`)"
+    --label "traefik.http.routers.$CONTAINER.rule=Host(\`$app_host\`)"
     --label "traefik.http.routers.$CONTAINER.entrypoints=websecure"
     --label "traefik.http.routers.$CONTAINER.tls.certresolver=$CERT_RESOLVER"
     --label "traefik.http.services.$CONTAINER.loadbalancer.server.port=$APP_PORT"
