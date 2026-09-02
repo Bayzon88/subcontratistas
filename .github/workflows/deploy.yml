@@ -21,11 +21,20 @@ concurrency:
 env:
   IMAGE: subcontratistas
   CONTAINER: subcontratistas
-  # deploy/nginx-subcontratistas.conf proxies to localhost:3000, so that is the host
-  # side. Bound to 127.0.0.1 so the app is only reachable through nginx.
+  # Loopback-only, for debugging on the box. Traefik does NOT use this - it reaches the
+  # container over TRAEFIK_NETWORK on APP_PORT. Nothing external depends on it.
   HOST_PORT: "3000"
-  # config.js: PORT defaults to 50001.
+  # config.js: PORT defaults to 50001. This is the port Traefik connects to.
   APP_PORT: "50001"
+
+  # --- Traefik integration -------------------------------------------------------
+  # VERIFY THESE THREE against a service that already routes (see deploy/README note).
+  # The network must be the one Traefik itself is attached to, or discovery silently
+  # finds nothing; the resolver must match the one the other routers use, or the cert
+  # request fails.
+  TRAEFIK_NETWORK: homelab_default
+  APP_HOST: subcontratistas.alvarobeltran.dev
+  CERT_RESOLVER: letsencrypt
 
 jobs:
   deploy:
@@ -74,18 +83,7 @@ jobs:
 
       - name: Swap the container
         id: swap
-        run: |
-          docker rm -f "$CONTAINER" 2>/dev/null || true
-          # --init: server.js forks src/cli.js per run, and PID 1 has to reap it.
-          # No volume: every run is self-contained and the report is downloaded, not kept.
-          docker run -d \
-            --name "$CONTAINER" \
-            --init \
-            --restart unless-stopped \
-            -p "127.0.0.1:$HOST_PORT:$APP_PORT" \
-            -e NODE_ENV=production \
-            -e PORT="$APP_PORT" \
-            "$IMAGE:${{ github.sha }}"
+        run: deploy/run-container.sh "$IMAGE:${{ github.sha }}"
 
       - name: Wait for the container to report healthy
         id: health
@@ -111,15 +109,7 @@ jobs:
       - name: Roll back to the previous image
         if: failure() && steps.swap.outcome != 'skipped' && steps.previous.outputs.image != ''
         run: |
-          docker rm -f "$CONTAINER" 2>/dev/null || true
-          docker run -d \
-            --name "$CONTAINER" \
-            --init \
-            --restart unless-stopped \
-            -p "127.0.0.1:$HOST_PORT:$APP_PORT" \
-            -e NODE_ENV=production \
-            -e PORT="$APP_PORT" \
-            "${{ steps.previous.outputs.image }}"
+          deploy/run-container.sh "${{ steps.previous.outputs.image }}"
           echo "rolled back to ${{ steps.previous.outputs.image }}"
 
       # Untagged layers from earlier builds only. Named images are left alone so the
