@@ -29,20 +29,24 @@ env:
 
 jobs:
   deploy:
-    # Both self-hosted runners - the Raspberry Pi and the pn-60b - carry the default
-    # `self-hosted` label that every runner gets at registration, so a bare
-    # `runs-on: self-hosted` picks whichever one is idle first. That is a race, not a
-    # target: the first two production deploys both happened to land on the Pi.
+    # `subs` is the runner on the pn-60b; `subcontratistas` is the one on the Pi
+    # (housita). Both also carry the default `self-hosted` label that every runner gets
+    # at registration, so a bare `runs-on: self-hosted` matched either and picked
+    # whichever was idle first. That was a race, not a target - the first two
+    # production deploys both landed on the Pi by luck.
+    #
+    # `runs-on` matches LABELS, not runner names, so the pn-60b runner needs a label
+    # `subs` added alongside its name for this to resolve.
     #
     # The machine is part of the deploy contract here, for three reasons:
-    #   1. Traefik, Portainer and nginx all live on the pn-60b. A container started on
-    #      the Pi is invisible to them - a different Docker daemon entirely.
+    #   1. Traefik and Portainer live on the pn-60b. A container started on the Pi is
+    #      invisible to them - a different Docker daemon entirely.
     #   2. The image is built on the runner that deploys it, and the two boxes are
     #      different architectures (Pi is ARM64, pn-60b is x86_64). The images are not
     #      interchangeable.
     #   3. `Record the running image` and `$IMAGE:latest` both read the LOCAL daemon,
     #      so rollback only works if every deploy lands on the same box.
-    runs-on: [self-hosted, pn-60b]
+    runs-on: [self-hosted, subs]
 
     steps:
       - uses: actions/checkout@v4
