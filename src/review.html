@@ -8,6 +8,13 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
+    <!-- Las dos paginas de la app. No hay plantillas: cada pagina lleva su propia copia y
+         marca la suya con aria-current, que es lo que leen los lectores de pantalla y lo
+         que colorea el CSS. Si aparece una tercera pagina, se agrega en ambas. -->
+    <nav class="nav" aria-label="Secciones">
+      <a href="/">Consolidar</a>
+      <a href="/review" class="activo" aria-current="page">Revisar un archivo</a>
+    </nav>
     <header>
       <h1>Revisar un archivo</h1>
       <p class="sub">
@@ -32,8 +39,8 @@
             Se puede usar aunque haya una consolidaci&oacute;n en curso: no interfiere.
           </li>
           <li>
-            Para el <strong>zip completo del mes</strong> use la
-            <a href="/">p&aacute;gina principal</a>.
+            Para el <strong>zip completo del mes</strong> vaya a
+            <strong>Consolidar</strong>, arriba.
           </li>
         </ul>
       </section>

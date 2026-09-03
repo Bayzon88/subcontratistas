@@ -228,6 +228,27 @@ test("GET /review sirve la pagina", async () => {
     assert.match(res.texto, /Revisar un archivo/);
 });
 
+test("las dos paginas se enlazan entre si y cada una se marca a si misma", async () => {
+    const { port } = await levantar();
+
+    // Sin plantillas, la barra esta duplicada en los dos archivos. Esta prueba es lo que
+    // impide que se separen: si alguien agrega una pagina en una y no en la otra, falla.
+    const inicio = await pedir(port, "/");
+    const review = await pedir(port, "/review");
+
+    for (const [nombre, res] of [["/", inicio], ["/review", review]]) {
+        assert.equal(res.status, 200, nombre);
+        assert.match(res.texto, /href="\/"/, `${nombre}: falta el enlace a Consolidar`);
+        assert.match(res.texto, /href="\/review"/, `${nombre}: falta el enlace a Revisar`);
+    }
+
+    // Cada pagina marca la suya, y solo la suya.
+    assert.match(inicio.texto, /href="\/" class="activo" aria-current="page"/);
+    assert.doesNotMatch(inicio.texto, /href="\/review" class="activo"/);
+    assert.match(review.texto, /href="\/review" class="activo" aria-current="page"/);
+    assert.doesNotMatch(review.texto, /href="\/" class="activo"/);
+});
+
 test("un .xlsx real devuelve el informe", async () => {
     const { port } = await levantar();
     const res = await revisar(port, {

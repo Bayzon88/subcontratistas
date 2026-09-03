@@ -13,6 +13,13 @@
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
+    <!-- Las dos paginas de la app. No hay plantillas: cada pagina lleva su propia copia y
+         marca la suya con aria-current, que es lo que leen los lectores de pantalla y lo
+         que colorea el CSS. Si aparece una tercera pagina, se agrega en ambas. -->
+    <nav class="nav" aria-label="Secciones">
+      <a href="/" class="activo" aria-current="page">Consolidar</a>
+      <a href="/review">Revisar un archivo</a>
+    </nav>
     <header>
       <h1>Consolidar subcontratistas</h1>
       <p class="sub">
@@ -35,9 +42,8 @@
           </li>
           <li>Solo se puede procesar un periodo a la vez.</li>
           <li>
-            &iquest;Duda de un archivo suelto? En
-            <a href="/review">Revisar un archivo</a> se comprueba uno solo, sin consolidar
-            y sin esperar a que termine un proceso en curso.
+            &iquest;Duda de un archivo suelto? <strong>Revisar un archivo</strong>, arriba,
+            comprueba uno solo sin consolidar y sin esperar a un proceso en curso.
           </li>
         </ul>
 

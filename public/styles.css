@@ -429,3 +429,42 @@ details summary {
 .tabla tbody tr:last-child td {
   border-bottom: none;
 }
+
+/* ------------------------------------------------------------------ *
+ * Barra de navegacion
+ * ------------------------------------------------------------------ */
+
+.nav {
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+  max-width: 60rem;
+  margin: 0 auto;
+  padding: 0.6rem 0 0;
+}
+
+.nav a {
+  padding: 0.45rem 0.9rem;
+  border-radius: 6px;
+  color: var(--suave);
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  border: 1px solid transparent;
+}
+
+.nav a:hover,
+.nav a:focus-visible {
+  background: var(--panel);
+  color: var(--tinta);
+  border-color: var(--borde);
+}
+
+/* La pagina en la que uno esta. El color no es la unica senal: aria-current se lo dice
+   al lector de pantalla, y el borde la distingue sin depender de distinguir colores. */
+.nav a.activo {
+  background: var(--panel);
+  color: var(--tinta);
+  border-color: var(--borde);
+  box-shadow: inset 0 -2px 0 var(--tinta);
+}
