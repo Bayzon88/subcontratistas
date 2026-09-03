@@ -32,11 +32,15 @@ env:
   # existing prometheus service. TRAEFIK_NETWORK must be the network Traefik itself is
   # attached to or discovery silently finds nothing.
   #
-  # DOMAIN is a repository variable (Settings > Secrets and variables > Actions >
-  # Variables), not a literal here - the same single source of truth the homelab
-  # compose stack interpolates as ${DOMAIN}. run-container.sh fails loudly if it is
-  # unset rather than deploying a route for "subcontratistas.".
+  # DOMAIN is not a literal here - it is the same value the homelab compose stack
+  # interpolates as ${DOMAIN}. Either source works and an explicit variable wins:
+  #   - a DOMAIN repository variable (Settings > Secrets and variables > Actions >
+  #     Variables), or
+  #   - DOMAIN_ENV_FILE, the env file compose already reads on this host. The runner
+  #     runs on that host, so this keeps the domain defined once on the box.
+  # run-container.sh fails loudly if neither yields a value.
   DOMAIN: ${{ vars.DOMAIN }}
+  DOMAIN_ENV_FILE: ""
   APP_SUBDOMAIN: subcontratistas
   TRAEFIK_NETWORK: homelab_default
   CERT_RESOLVER: letsencrypt

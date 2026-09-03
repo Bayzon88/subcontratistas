@@ -23,10 +23,28 @@ mode="${1:?usage: run-container.sh <image> | --check}"
 
 # The rule below reads ${APP_SUBDOMAIN}.${DOMAIN}, the same shape the homelab compose
 # stack writes as prometheus.${DOMAIN}, so the host is assembled in the label rather
-# than spelled out anywhere. An unset repository variable expands to the empty string,
-# which would build "subcontratistas." - a route that can never match and a cert
-# request that can never pass - so fail here instead.
-: "${DOMAIN:?set the DOMAIN repository variable (Settings > Secrets and variables > Actions > Variables)}"
+# than spelled out anywhere.
+#
+# DOMAIN can come from the workflow (a repository variable) or, since the runner is the
+# host the stack runs on, from the env file compose already reads - so the domain does
+# not have to be written down in two places. An explicit value wins over the file.
+#
+# The file is grepped, never sourced: a compose .env holds passwords, and sourcing it
+# would execute whatever is in it and pull every key it defines into this environment.
+if [[ -z "${DOMAIN:-}" && -n "${DOMAIN_ENV_FILE:-}" ]]; then
+    if [[ ! -r "$DOMAIN_ENV_FILE" ]]; then
+        echo "DOMAIN_ENV_FILE '$DOMAIN_ENV_FILE' is not readable by $(id -un)." >&2
+        echo "The runner user needs read access to it, or set a DOMAIN repository variable instead." >&2
+        exit 1
+    fi
+    DOMAIN="$(sed -n 's/^[[:space:]]*DOMAIN[[:space:]]*=[[:space:]]*//p' "$DOMAIN_ENV_FILE" \
+              | tail -n1 | sed "s/^[\"']//; s/[\"']$//")"
+    [[ -n "$DOMAIN" ]] || { echo "no DOMAIN= line in '$DOMAIN_ENV_FILE'" >&2; exit 1; }
+fi
+
+# An unset variable expands to the empty string, which would build "subcontratistas." -
+# a route that can never match and a cert request that can never pass.
+: "${DOMAIN:?set a DOMAIN repository variable, or point DOMAIN_ENV_FILE at the env file that defines it}"
 
 # A wrong network name would otherwise surface only after the running container had
 # been removed - and the rollback runs this same script, so it would fail the same way
