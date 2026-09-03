@@ -47,9 +47,11 @@ env:
   # enough, since Traefik can only reach containers on a network it is on itself.
   TRAEFIK_CONTAINER: traefik
   CERT_RESOLVER: letsencrypt
-  # The app ships no authentication of its own; see deploy/run-container.sh. Empty
-  # serves it open on the public hostname.
-  TRAEFIK_MIDDLEWARES: traefik-auth
+  # Deliberately empty: the app is served open on the public hostname. The app ships
+  # no authentication of its own, and reports are not enumerable - job ids are
+  # crypto.randomUUID() - so the exposure is use of the tool, not disclosure of past
+  # reports. Set this to a middleware name to put something in front.
+  TRAEFIK_MIDDLEWARES: ""
 
 jobs:
   deploy:

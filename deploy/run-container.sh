@@ -95,12 +95,12 @@ labels=(
     --label "traefik.http.services.$CONTAINER.loadbalancer.server.port=$APP_PORT"
 )
 
-# The app has no authentication of its own - no login, no session. That was fine while
-# it answered to subcontratistas.local on the LAN (rework-plan/05 line 16 records the
-# constraint and says to use basic-auth or a VPN if it ever changes). A public hostname
-# changes it: without a middleware, anyone who guesses the subdomain can upload
-# subcontractor workbooks and download the consolidated report. So it goes behind the
-# same middleware prometheus uses. Set TRAEFIK_MIDDLEWARES to "" to serve it open.
+# The app has no authentication of its own - no login, no session - and is served
+# open, which is a deliberate choice rather than an oversight. Past reports are not
+# reachable by a stranger: /descargar/:id keys on crypto.randomUUID(), and uploads are
+# capped by config.MAX_UPLOAD_BYTES with files: 1. What an unauthenticated caller can
+# do is take the single-flight slot in server.js, which blocks a real run for up to
+# TIMEOUT_TRABAJO_MS. Naming a middleware here puts one in front again.
 if [[ -n "${TRAEFIK_MIDDLEWARES:-}" ]]; then
     labels+=(--label "traefik.http.routers.$CONTAINER.middlewares=$TRAEFIK_MIDDLEWARES")
 fi
