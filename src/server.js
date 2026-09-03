@@ -78,6 +78,7 @@ const fileUpload = require("express-fileupload");
 const config = require("./config");
 const { parsePeriod, previousMonth, PeriodError } = require("./pipeline/period");
 const { makeRunDir, removeRunDir } = require("./pipeline/zip");
+const { reviewWorkbook, subcontratistaFromFilename } = require("./pipeline/review");
 
 /* ------------------------------------------------------------------ *
  * Constants
@@ -125,6 +126,11 @@ const MOTIVO_SALIDA = Object.freeze({
 
 function esZipPorNombre(nombre) {
     return typeof nombre === "string" && /\.zip$/i.test(nombre.trim());
+}
+
+/** /review takes one subcontratista's workbook, not the month's zip. */
+function esXlsxPorNombre(nombre) {
+    return typeof nombre === "string" && /\.xlsx$/i.test(nombre.trim());
 }
 
 /**
@@ -760,6 +766,122 @@ function createServer(opciones = {}) {
             });
         }
         res.download(job.archivo, job.nombreArchivo);
+    });
+
+    /* ---------------- /review ---------------- *
+     * Checking one workbook before it is put in the month's zip. It runs the same
+     * readWorkbook -> parseRow -> dedupe that a real run does and reports the same issue
+     * codes, but stops before anything is produced.
+     *
+     * Two things it deliberately does NOT do, both of which /uploadfiles must:
+     *
+     *   - take the single-flight guard. That guard exists because the template round-trip
+     *     peaks near 944 MB RSS; a review never opens the template, so making it wait on a
+     *     consolidation (or a consolidation wait on it) would be a cost with no cause.
+     *   - fork a child and stream progress. One workbook is fast enough to answer inside
+     *     the request, so there is no job to poll and nothing to download.
+     */
+    app.get("/review", (_req, res) => res.sendFile(path.join(config.SRC, "review.html")));
+
+    app.post("/review", (req, res) => {
+        if (res.headersSent || res.writableEnded) {
+            descartarSubida(req);
+            return;
+        }
+
+        const subida = req.files && req.files.archivo;
+        const archivo = Array.isArray(subida) ? subida[0] : subida;
+
+        try {
+            if (!archivo) {
+                return res.status(400).json({
+                    error: "falta el archivo",
+                    mensaje: "No se recibio ningun archivo. Seleccione un .xlsx.",
+                });
+            }
+            if (archivo.truncated) {
+                return res.status(413).json({
+                    error: "archivo demasiado grande",
+                    mensaje: `El archivo supera el limite de ${Math.round(maxUploadBytes / (1024 * 1024))} MB.`,
+                });
+            }
+            if (!esXlsxPorNombre(archivo.name)) {
+                return res.status(400).json({
+                    error: "formato invalido",
+                    mensaje: `Se revisa un archivo .xlsx a la vez (se recibio "${archivo.name}"). `
+                        + "Para el zip completo del mes use la pagina principal.",
+                });
+            }
+            // .xlsx is a zip container, so the same local-file-header check applies and
+            // refuses anything renamed to .xlsx.
+            if (!pareceZip(archivo.tempFilePath)) {
+                return res.status(400).json({
+                    error: "archivo invalido",
+                    mensaje: `"${archivo.name}" no parece un archivo .xlsx valido.`,
+                });
+            }
+            if (archivo.size > config.MAX_REVIEW_BYTES) {
+                return res.status(413).json({
+                    error: "archivo demasiado grande",
+                    mensaje: `Un archivo de revision no puede pasar de `
+                        + `${Math.round(config.MAX_REVIEW_BYTES / (1024 * 1024))} MB.`,
+                });
+            }
+
+            // The period is an argument here for the same reason it is one in run.js: the
+            // date checks are relative to it. The clock is only a default for the caller
+            // that did not choose, which is the same default /api/periodo suggests.
+            let periodo;
+            try {
+                // `period` is accepted alongside `periodo` for the same reason
+                // /uploadfiles accepts both.
+                const pedido = typeof req.body?.periodo === "string" && req.body.periodo !== ""
+                    ? req.body.periodo
+                    : (typeof req.body?.period === "string" && req.body.period !== ""
+                        ? req.body.period
+                        : previousMonth(ahora()));
+                periodo = parsePeriod(pedido);
+            } catch (e) {
+                if (e instanceof PeriodError) {
+                    return res.status(400).json({ error: "periodo invalido", mensaje: e.message });
+                }
+                throw e;
+            }
+
+            // `safeFileNames: true` strips everything but word characters from the upload's
+            // filename, so "SUBCONTRATA UNO.xlsx" arrives as "SUBCONTRATAUNO.xlsx". That is
+            // the right thing for anything that touches the filesystem and the wrong thing
+            // for a label, because a subcontratista's name has spaces in it. The client
+            // sends the original for display.
+            //
+            // DISPLAY ONLY. Neither value is ever joined to a path, opened, or written: the
+            // file that gets read is `archivo.tempFilePath`, which express-fileupload named.
+            // The page escapes both before rendering.
+            const mostrado = req.body && typeof req.body.nombre === "string"
+                && req.body.nombre.trim() !== ""
+                ? req.body.nombre.trim().slice(0, 200)
+                : archivo.name;
+            const nombre = req.body && typeof req.body.subcontratista === "string"
+                && req.body.subcontratista.trim() !== ""
+                ? req.body.subcontratista.trim().slice(0, 200)
+                : subcontratistaFromFilename(mostrado);
+
+            const informe = reviewWorkbook(archivo.tempFilePath, {
+                period: periodo.key,
+                subcontratista: nombre,
+                archivo: mostrado,
+            });
+            return res.json(informe);
+        } catch (e) {
+            process.stderr.write(`server.js /review: ${e && e.stack ? e.stack : e}\n`);
+            return res.status(500).json({
+                error: "no se pudo revisar",
+                mensaje: e && e.message ? e.message : "No se pudo revisar el archivo.",
+            });
+        } finally {
+            // Nothing is retained (05 §7 step 9). The review read the file; it is gone now.
+            descartarSubida(req);
+        }
     });
 
     app.use((req, res) => res.status(404).json({ error: "no encontrado", ruta: req.path }));

@@ -55,6 +55,9 @@ module.exports = {
     /** Upload and extraction caps. adm-zip 0.6.0 fixes GHSA-xcpc-8h2w-3j85 (a crafted
      *  zip triggering a 4 GB allocation); these are the guards it still will not add. */
     MAX_UPLOAD_BYTES: 512 * 1024 * 1024,
+    /** /review takes one subcontratista's workbook, not the month's zip, and answers
+     *  inside the request. A cap far below MAX_UPLOAD_BYTES keeps that promise true. */
+    MAX_REVIEW_BYTES: Number(process.env.MAX_REVIEW_BYTES) || 32 * 1024 * 1024,
     MAX_ENTRIES: 5000,
     MAX_UNCOMPRESSED_BYTES: 2 * 1024 * 1024 * 1024,
     MAX_COMPRESSION_RATIO: 200,

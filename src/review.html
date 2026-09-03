@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Revisar un archivo</title>
+    <!-- Mismas reglas que la pagina principal: sin CDN, todo servido por este proceso. -->
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header>
+      <h1>Revisar un archivo</h1>
+      <p class="sub">
+        Un archivo de un subcontratista &mdash; se revisa, no se consolida.
+      </p>
+    </header>
+
+    <main>
+      <section class="panel" id="panel-instrucciones">
+        <h2>Para qu&eacute; sirve</h2>
+        <ul>
+          <li>
+            Revisa <strong>un archivo .xlsx a la vez</strong> y avisa de lo mismo que
+            detecta la consolidaci&oacute;n: duplicados, fechas ilegibles, c&oacute;digos
+            fuera de dominio, columnas faltantes, filas rechazadas.
+          </li>
+          <li>
+            <strong>No genera ning&uacute;n reporte y no guarda nada.</strong> Sirve para
+            corregir el archivo antes de ponerlo en el zip del mes.
+          </li>
+          <li>
+            Se puede usar aunque haya una consolidaci&oacute;n en curso: no interfiere.
+          </li>
+          <li>
+            Para el <strong>zip completo del mes</strong> use la
+            <a href="/">p&aacute;gina principal</a>.
+          </li>
+        </ul>
+      </section>
+
+      <section class="panel" id="panel-formulario">
+        <h2>Periodo</h2>
+        <p class="nota">
+          Las fechas se revisan contra este periodo, igual que en la consolidaci&oacute;n.
+        </p>
+        <div class="periodo">
+          <label>
+            Mes
+            <select id="mes"></select>
+          </label>
+          <label>
+            A&ntilde;o
+            <select id="anio"></select>
+          </label>
+        </div>
+        <p class="nota" id="periodo-nota"></p>
+
+        <div id="zona" class="zona">
+          <input id="archivo" name="archivo" type="file" accept=".xlsx" />
+          <label id="etiqueta-archivo" for="archivo">
+            Seleccione el archivo .xlsx o arr&aacute;strelo aqu&iacute;
+          </label>
+        </div>
+
+        <button id="revisar" type="button" class="principal">Revisar</button>
+
+        <div id="resultado" class="resultado" hidden></div>
+      </section>
+    </main>
+
+    <script src="js/review.js"></script>
+  </body>
+</html>

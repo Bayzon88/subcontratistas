@@ -348,3 +348,84 @@ details summary {
   color: var(--suave);
   font-size: 0.9rem;
 }
+
+/* ------------------------------------------------------------------ *
+ * /review
+ * ------------------------------------------------------------------ */
+
+:root {
+  --azul: #1c4f8b;
+  --azul-claro: #e8f0fa;
+}
+
+/* El titular del informe: lo primero que se lee es si el archivo sirve. */
+.veredicto {
+  border-radius: 6px;
+  padding: 0.85rem 1rem;
+  margin: 0 0 1rem;
+  border-left: 5px solid var(--borde);
+  background: var(--fondo);
+}
+
+.veredicto h3 {
+  margin: 0 0 0.25rem;
+  font-size: 1.05rem;
+}
+
+.veredicto p {
+  margin: 0;
+  color: var(--suave);
+}
+
+.veredicto.sev-ok      { border-left-color: var(--verde); background: var(--verde-claro); }
+.veredicto.sev-warning { border-left-color: var(--ambar); background: var(--ambar-claro); }
+.veredicto.sev-error   { border-left-color: var(--rojo);  background: var(--rojo-claro); }
+.veredicto.sev-failed  { border-left-color: var(--rojo);  background: var(--rojo-claro); }
+
+/* Etiqueta de severidad por incidencia. */
+.pastilla {
+  display: inline-block;
+  padding: 0.1rem 0.45rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.pastilla.sev-info    { background: var(--azul-claro);  color: var(--azul); }
+.pastilla.sev-warning { background: var(--ambar-claro); color: var(--ambar); }
+.pastilla.sev-error   { background: var(--rojo-claro);  color: var(--rojo); }
+.pastilla.sev-failed  { background: var(--rojo);        color: #fff; }
+
+/* Un archivo con muchas incidencias no debe desbordar la pagina a lo ancho:
+   la tabla se desplaza dentro de su caja, el cuerpo no. */
+.tabla-scroll {
+  overflow-x: auto;
+  margin: 0 0 1rem;
+}
+
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.tabla th,
+.tabla td {
+  text-align: left;
+  padding: 0.4rem 0.6rem;
+  border-bottom: 1px solid var(--borde);
+  vertical-align: top;
+}
+
+.tabla th {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--suave);
+  white-space: nowrap;
+}
+
+.tabla tbody tr:last-child td {
+  border-bottom: none;
+}

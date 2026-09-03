@@ -214,13 +214,18 @@ function failedResult(provenance) {
  * @param {string} filePath absolute path to the .xlsx
  * @param {object} o
  * @param {string} o.subcontratista source folder name - the subcontratista's identity
+ * @param {string} [o.archivo] name to call the file in issues and provenance. Defaults to
+ *        the basename of `filePath`, which is right for a real run because zip.js extracted
+ *        the file under its own name. /review reads an upload whose temp file is named by
+ *        express-fileupload, so it passes the name the operator actually chose - otherwise
+ *        every message would name "tmp-1-1788408375827".
  * @param {import('./issues').IssueList} o.issues collector; never throws, always appends
  * @returns {{ok: boolean, rows: Array<object>, provenance: object, headerMap: object,
  *            anchor: object|null, missingColumns: string[],
  *            unrecognizedHeaders: Array<object>, stats: object}}
  */
-function readWorkbook(filePath, { subcontratista, issues = new IssueList() } = {}) {
-    const archivo = path.basename(filePath);
+function readWorkbook(filePath, { subcontratista, archivo: nombreMostrado, issues = new IssueList() } = {}) {
+    const archivo = nombreMostrado || path.basename(filePath);
     const base = { subcontratista: subcontratista ?? null, archivo, hoja: null, celdaAncla: null, date1904: false };
 
     // The tuned read of Phase 1 task 10: `sheets` skips parsing every other sheet,
