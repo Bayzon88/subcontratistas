@@ -7,7 +7,7 @@
     <!-- Mismas reglas que la pagina principal: sin CDN, todo servido por este proceso. -->
     <link rel="stylesheet" href="styles.css" />
   </head>
-  <body>
+  <body class="pagina-informe">
     <!-- Las dos paginas de la app. No hay plantillas: cada pagina lleva su propia copia y
          marca la suya con aria-current, que es lo que leen los lectores de pantalla y lo
          que colorea el CSS. Si aparece una tercera pagina, se agrega en ambas. -->
@@ -71,8 +71,12 @@
 
         <button id="revisar" type="button" class="principal">Revisar</button>
 
-        <div id="resultado" class="resultado" hidden></div>
       </section>
+
+      <!-- Fuera del panel del formulario y no dentro: ahi el informe ocupaba media
+           pantalla y la columna "Que corregir" se partia en tres o cuatro lineas por
+           fila. Como hijo directo de main toma su propia fila completa. -->
+      <div id="resultado" class="resultado panel-informe" hidden></div>
     </main>
 
     <script src="js/review.js"></script>

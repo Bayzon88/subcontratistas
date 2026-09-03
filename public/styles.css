@@ -475,3 +475,37 @@ details summary {
   font-size: 0.85rem;
   white-space: nowrap;
 }
+
+/* ------------------------------------------------------------------ *
+ * Paginas con informe ancho (/review)
+ * ------------------------------------------------------------------ */
+
+/* 1080px es un ancho de lectura comodo para instrucciones y formularios, y demasiado
+   estrecho para una tabla con una frase por fila. La pagina de revision usa el ancho de
+   la pantalla, con un tope para que en un monitor grande el texto no cruce medio metro. */
+.pagina-informe .nav,
+.pagina-informe main {
+  max-width: min(1720px, 100%);
+}
+
+/* Los dos paneles de arriba no necesitan crecer con la pagina: instrucciones y
+   formulario se leen mejor angostos, y lo que gana ancho es el informe. */
+.pagina-informe #panel-instrucciones,
+.pagina-informe #panel-formulario {
+  max-width: 34rem;
+}
+
+/* El informe toma una fila entera del flex de main. */
+.panel-informe {
+  flex: 1 1 100%;
+  min-width: 0;
+  background: var(--panel);
+  margin-top: 0;
+}
+
+/* Nombres de columna del Excel. Ahora que el informe usa el ancho de la pantalla caben
+   enteros, y partir "APELLIDOS Y NOMBRES" en tres lineas solo hacia mas alta la fila.
+   En pantallas angostas manda el scroll horizontal de .tabla-scroll. */
+.tabla td.col {
+  white-space: nowrap;
+}

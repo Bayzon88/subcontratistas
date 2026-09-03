@@ -30,6 +30,10 @@ const ORDEN = ["FAILED", "ERROR", "WARNING", "INFO"];
  *  dice cuantas quedaron fuera, en vez de volverse ilegible. */
 const MAX_FILAS = 200;
 
+/** El contenedor del informe es tambien el panel ancho de la pagina; al limpiarlo hay
+ *  que devolverle las dos clases, no solo la primera. */
+const CLASES_RESULTADO = "resultado panel-informe";
+
 const $ = (id) => document.getElementById(id);
 
 const el = {
@@ -185,7 +189,7 @@ function bloqueDuplicados(duplicados) {
             ? "Se unen en una fila"
             : "<strong>No se unen</strong>";
         return `<tr>
-            <td>${escapar(d.columna)}</td>
+            <td class="col">${escapar(d.columna)}</td>
             <td>${escapar(d.clave)}</td>
             <td>${escapar(d.copias)}</td>
             <td class="celda">${escapar(celdas)}</td>
@@ -217,8 +221,8 @@ function bloqueIncidencias(issues) {
         const donde = i.celda ? i.celda : (i.fila ? `fila ${i.fila}` : "");
         return `<tr>
             <td><span class="pastilla ${s.clase}">${escapar(s.texto)}</span></td>
-            <td>${escapar(donde)}</td>
-            <td>${escapar(i.columna || "")}</td>
+            <td class="celda">${escapar(donde)}</td>
+            <td class="col">${escapar(i.columna || "")}</td>
             <td>${escapar(i.message)}</td>
           </tr>`;
     }).join("");
@@ -235,7 +239,7 @@ function mostrar(informe) {
     const v = veredicto(informe);
     const s = informe.stats;
     el.resultado.hidden = false;
-    el.resultado.className = "resultado";
+    el.resultado.className = CLASES_RESULTADO;
     el.resultado.innerHTML = `
       <div class="veredicto ${v.clase}">
         <h3>${escapar(v.texto)}</h3>
@@ -260,7 +264,7 @@ function mostrar(informe) {
 
 function mostrarError(mensaje, detalle) {
     el.resultado.hidden = false;
-    el.resultado.className = "resultado";
+    el.resultado.className = CLASES_RESULTADO;
     el.resultado.innerHTML = `
       <div class="veredicto sev-failed">
         <h3>${escapar(mensaje)}</h3>
