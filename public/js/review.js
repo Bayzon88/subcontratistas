@@ -26,6 +26,25 @@ const SEVERIDAD = {
 };
 const ORDEN = ["FAILED", "ERROR", "WARNING", "INFO"];
 
+/**
+ * INFO no se muestra por defecto.
+ *
+ * Un archivo normal trae docenas de lineas informativas - "este DNI de 9 digitos se
+ * acepto como CE", "se limpio el texto de esta celda" - que son correctas y no hay que
+ * arreglar. Enterraban las que si. ERROR queda a la vista: es mas grave que WARNING, y
+ * es la severidad de "Falta APELLIDOS Y NOMBRES en la fila 6".
+ */
+const SIEMPRE_VISIBLE = new Set(["FAILED", "ERROR", "WARNING"]);
+const esDetalle = (severity) => !SIEMPRE_VISIBLE.has(severity);
+
+/** Los visibles primero y los INFO despues, no intercalados: al abrir el interruptor se
+ *  agregan abajo en vez de mover de lugar lo que el operador ya estaba leyendo. */
+function ordenarParaMostrar(items) {
+    const visibles = items.filter((i) => !esDetalle(i.severity));
+    if (!verDetalles) return visibles;
+    return [...visibles, ...items.filter((i) => esDetalle(i.severity))];
+}
+
 /** Un archivo puede producir cientos de incidencias; la pagina muestra las primeras y
  *  dice cuantas quedaron fuera, en vez de volverse ilegible. */
 const MAX_FILAS = 200;
@@ -49,6 +68,11 @@ const el = {
 
 let maximo = { anio: new Date().getFullYear(), mes: new Date().getMonth() + 1 };
 let ocupado = false;
+
+/** El ultimo informe recibido y si se piden los INFO. El informe se guarda porque el
+ *  interruptor vuelve a dibujar desde los mismos datos: no se pide otra vez el archivo. */
+let ultimoInforme = null;
+let verDetalles = false;
 
 /* ------------------------------------------------------------------ *
  * Periodo
@@ -155,8 +179,9 @@ function bloqueColumnas(columnas) {
  * con la celda del Excel, ordenada por fila. El servidor ya la arma y la ordena; aqui
  * solo se pinta.
  */
-function bloqueUbicaciones(ubicaciones) {
-    if (!ubicaciones || ubicaciones.length === 0) return "";
+function bloqueUbicaciones(todas) {
+    const ubicaciones = ordenarParaMostrar(todas || []);
+    if (ubicaciones.length === 0) return "";
     const filas = ubicaciones.slice(0, MAX_FILAS).map((u) => {
         const s = SEVERIDAD[u.severity] || { texto: u.severity, clase: "" };
         return `<tr>
@@ -212,10 +237,10 @@ function bloqueDuplicados(duplicados) {
 
 /** Una fila por incidencia, ordenadas por gravedad, con la celda de origen cuando existe. */
 function bloqueIncidencias(issues) {
-    if (!issues || issues.length === 0) return "";
-    const ordenadas = issues.slice().sort(
-        (a, b) => ORDEN.indexOf(a.severity) - ORDEN.indexOf(b.severity)
+    const ordenadas = ordenarParaMostrar(
+        (issues || []).slice().sort((a, b) => ORDEN.indexOf(a.severity) - ORDEN.indexOf(b.severity))
     );
+    if (ordenadas.length === 0) return "";
     const filas = ordenadas.slice(0, MAX_FILAS).map((i) => {
         const s = SEVERIDAD[i.severity] || { texto: i.severity, clase: "" };
         const donde = i.celda ? i.celda : (i.fila ? `fila ${i.fila}` : "");
@@ -228,14 +253,38 @@ function bloqueIncidencias(issues) {
     }).join("");
     const resto = ordenadas.length > MAX_FILAS
         ? `<p class="nota">Se muestran ${MAX_FILAS} de ${ordenadas.length} incidencias.</p>` : "";
-    return `<h3>Detalle (${issues.length})</h3>
+    return `<h3>Detalle (${ordenadas.length})</h3>
       <div class="tabla-scroll"><table class="tabla">
         <thead><tr><th>Gravedad</th><th>Donde</th><th>Columna</th><th>Que paso</th></tr></thead>
         <tbody>${filas}</tbody>
       </table></div>${resto}`;
 }
 
+/**
+ * El interruptor. Se dibuja solo si hay algo escondido, y dice cuanto - un "Ver mas
+ * detalles" que revela cero cosas es peor que no estar.
+ */
+function bloqueVerMas(informe) {
+    const ocultas = (informe.ubicaciones || []).filter((u) => esDetalle(u.severity)).length
+        + (informe.issues || []).filter((i) => esDetalle(i.severity)).length;
+    if (ocultas === 0) return "";
+    return `<p class="ver-mas">
+        <label>
+          <input type="checkbox" id="ver-detalles"${verDetalles ? " checked" : ""} />
+          Ver mas detalles (${ocultas})
+        </label>
+      </p>`;
+}
+
 function mostrar(informe) {
+    ultimoInforme = informe;
+    verDetalles = false;   // cada archivo nuevo empieza sin el ruido
+    dibujar();
+}
+
+function dibujar() {
+    const informe = ultimoInforme;
+    if (!informe) return;
     const v = veredicto(informe);
     const s = informe.stats;
     el.resultado.hidden = false;
@@ -256,6 +305,7 @@ function mostrar(informe) {
         ${cifra(s.filasAceptadas, "quedarian")}
       </ul>
       ${bloqueColumnas(informe.columnas)}
+      ${bloqueVerMas(informe)}
       ${bloqueUbicaciones(informe.ubicaciones)}
       ${bloqueDuplicados(informe.duplicados)}
       ${bloqueIncidencias(informe.issues)}
@@ -263,6 +313,7 @@ function mostrar(informe) {
 }
 
 function mostrarError(mensaje, detalle) {
+    ultimoInforme = null;
     el.resultado.hidden = false;
     el.resultado.className = CLASES_RESULTADO;
     el.resultado.innerHTML = `
@@ -344,6 +395,15 @@ el.archivo.addEventListener("change", () => {
         ? el.archivo.files[0].name
         : "Seleccione el archivo .xlsx o arrastrelo aqui";
 });
+// Delegado en el contenedor: cada dibujo reemplaza el innerHTML, asi que un listener
+// puesto sobre el checkbox se perderia en el primer clic.
+el.resultado.addEventListener("change", (e) => {
+    if (e.target && e.target.id === "ver-detalles") {
+        verDetalles = e.target.checked;
+        dibujar();
+    }
+});
+
 el.mes.addEventListener("change", revisarPeriodo);
 el.anio.addEventListener("change", revisarPeriodo);
 el.revisar.addEventListener("click", revisar);

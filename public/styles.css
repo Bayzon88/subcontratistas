@@ -509,3 +509,25 @@ details summary {
 .tabla td.col {
   white-space: nowrap;
 }
+
+/* El interruptor de "ver mas detalles". Va entre las cifras y las tablas, porque manda
+   sobre todo lo que viene abajo. */
+.ver-mas {
+  margin: 0 0 0.75rem;
+}
+
+.ver-mas label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--suave);
+  font-size: 0.9rem;
+  cursor: pointer;
+  user-select: none;
+}
+
+.ver-mas input {
+  width: 1rem;
+  height: 1rem;
+  cursor: pointer;
+}
