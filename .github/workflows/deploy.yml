@@ -42,7 +42,10 @@ env:
   DOMAIN: ${{ vars.DOMAIN }}
   DOMAIN_ENV_FILE: /home/bayzon88/Desktop/HomeLab/.env
   APP_SUBDOMAIN: subcontratistas
-  TRAEFIK_NETWORK: homelab_default
+  TRAEFIK_NETWORK: proxy
+  # Verified to be attached to TRAEFIK_NETWORK; a network that merely exists is not
+  # enough, since Traefik can only reach containers on a network it is on itself.
+  TRAEFIK_CONTAINER: traefik
   CERT_RESOLVER: letsencrypt
   # The app ships no authentication of its own; see deploy/run-container.sh. Empty
   # serves it open on the public hostname.

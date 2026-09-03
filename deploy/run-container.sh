@@ -19,7 +19,7 @@ set -euo pipefail
 mode="${1:?usage: run-container.sh <image> | --check}"
 
 : "${CONTAINER:?}" "${APP_PORT:?}" "${HOST_PORT:?}"
-: "${TRAEFIK_NETWORK:?}" "${CERT_RESOLVER:?}" "${APP_SUBDOMAIN:?}"
+: "${TRAEFIK_NETWORK:?}" "${CERT_RESOLVER:?}" "${APP_SUBDOMAIN:?}" "${TRAEFIK_CONTAINER:?}"
 
 # The rule below reads ${APP_SUBDOMAIN}.${DOMAIN}, the same shape the homelab compose
 # stack writes as prometheus.${DOMAIN}, so the host is assembled in the label rather
@@ -46,12 +46,27 @@ fi
 # a route that can never match and a cert request that can never pass.
 : "${DOMAIN:?set a DOMAIN repository variable, or point DOMAIN_ENV_FILE at the env file that defines it}"
 
-# A wrong network name would otherwise surface only after the running container had
-# been removed - and the rollback runs this same script, so it would fail the same way
-# and leave nothing serving at all. Check while the old container is still up.
+# A wrong network would otherwise surface only after the running container had been
+# removed - and the rollback runs this same script, so it would fail the same way and
+# leave nothing serving at all. Check while the old container is still up.
+#
+# Existence is not sufficient. Traefik reaches a container only over a network it is
+# itself attached to, so a network that exists but has no Traefik on it yields a router
+# that appears in the dashboard with a service it can never connect to - a worse
+# failure than this one, because the container gets swapped first.
 if ! docker network inspect "$TRAEFIK_NETWORK" >/dev/null 2>&1; then
     echo "network '$TRAEFIK_NETWORK' does not exist on this host. Available:" >&2
     docker network ls --format '  {{.Name}}' >&2
+    exit 1
+fi
+
+if ! docker network inspect "$TRAEFIK_NETWORK" \
+        --format '{{range .Containers}}{{println .Name}}{{end}}' 2>/dev/null \
+        | grep -qx "$TRAEFIK_CONTAINER"; then
+    echo "'$TRAEFIK_CONTAINER' is not attached to network '$TRAEFIK_NETWORK'." >&2
+    echo "Traefik cannot route to a container on a network it is not on. Attached there:" >&2
+    docker network inspect "$TRAEFIK_NETWORK" \
+        --format '{{range .Containers}}  {{println .Name}}{{end}}' >&2
     exit 1
 fi
 
