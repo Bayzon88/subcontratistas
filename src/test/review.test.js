@@ -83,6 +83,7 @@ test("todo libro del corpus produce un informe con la forma completa", () => {
         assert.equal(r.periodo, PERIODO, f);
         assert.ok(Array.isArray(r.issues), f);
         assert.ok(Array.isArray(r.duplicados), f);
+        assert.ok(Array.isArray(r.ubicaciones), f);
         assert.ok(r.resumen && typeof r.resumen.porSeveridad === "object", f);
         // Los codigos son los del pipeline: un informe no inventa vocabulario propio.
         for (const i of r.issues) {
@@ -126,6 +127,113 @@ test("subcontratistaFromFilename usa el nombre del archivo como etiqueta", () =>
     assert.equal(subcontratistaFromFilename("/tmp/x/lista.xlsx"), "lista");
     assert.equal(subcontratistaFromFilename(""), "(sin nombre)");
     assert.equal(subcontratistaFromFilename("   .xlsx"), "(sin nombre)");
+});
+
+/* ------------------------------------------------------------------ *
+ * Donde corregir
+ *
+ * Un libro armado a proposito con los cuatro casos que el operador reporta: un valor
+ * obligatorio vacio, un nombre repetido, un DNI repetido bajo dos nombres distintos, y
+ * una fila sin nombre. Se construye aqui y no en src/fixtures porque el corpus de
+ * fixtures alimenta las pruebas del pipeline y sus expected.json, y esto es de la
+ * revision.
+ * ------------------------------------------------------------------ */
+
+const CASOS = path.join(fs.mkdtempSync(path.join(os.tmpdir(), "review-casos-")), "caso.xlsx");
+test.after(() => fs.rmSync(path.dirname(CASOS), { recursive: true, force: true }));
+
+(function construirCaso() {
+    const XLSX = require("xlsx");
+    const wb = XLSX.readFile(path.join(FIXTURES, "dni-leading-zero.xlsx"));
+    const hoja = wb.Sheets[wb.SheetNames.find((n) => /cuadro/i.test(n))];
+    const aoa = XLSX.utils.sheet_to_json(hoja, { header: 1, raw: true, defval: null });
+    const H = aoa[0];
+    const base = aoa[1];
+    const r = (o) => {
+        const x = base.slice();
+        for (const [k, v] of Object.entries(o)) x[H.indexOf(k)] = v;
+        return x;
+    };
+    const filas = [
+        H,
+        r({ "APELLIDOS Y NOMBRES": "PEREZ LOPEZ ANA", "Nro. DNI / CE": "10000001" }),   // fila 2
+        r({ "APELLIDOS Y NOMBRES": "TORRES DIAZ LUIS", "Nro. DNI / CE": "10000002", "FECHA NACIMIENTO": null }), // 3
+        r({ "APELLIDOS Y NOMBRES": "PEREZ LOPEZ ANA", "Nro. DNI / CE": "10000003" }),   // 4: nombre repetido
+        r({ "APELLIDOS Y NOMBRES": "RAMOS SOTO JOSE", "Nro. DNI / CE": "10000001" }),   // 5: DNI repetido
+        r({ "APELLIDOS Y NOMBRES": null, "Nro. DNI / CE": "10000004" }),                // 6: sin nombre
+    ];
+    const out = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(out, XLSX.utils.aoa_to_sheet(filas), "Cuadro");
+    XLSX.writeFile(out, CASOS);
+})();
+
+const caso = () => reviewWorkbook(CASOS, { period: PERIODO, archivo: "CASO.xlsx", subcontratista: "CASO" });
+const textos = (r) => r.ubicaciones.map((u) => u.texto);
+
+test("un obligatorio vacio dice que columna es y en que fila", () => {
+    const u = caso().ubicaciones.find((x) => x.columna === "FECHA NACIMIENTO");
+    assert.ok(u, "deberia haber una ubicacion para FECHA NACIMIENTO");
+    assert.equal(u.fila, 3);
+    assert.equal(u.celda, "F3");
+    assert.equal(u.texto, "Falta FECHA NACIMIENTO en la fila 3 (celda F3).");
+});
+
+test("un nombre repetido nombra las dos filas y sus celdas", () => {
+    const u = caso().ubicaciones.find((x) => /^El nombre/.test(x.texto));
+    assert.ok(u, "deberia detectar el nombre repetido");
+    assert.match(u.texto, /"PEREZ LOPEZ ANA"/);
+    assert.match(u.texto, /filas 2 y 4/);
+    assert.match(u.texto, /celdas E2, E4/);
+    assert.match(u.texto, /columna APELLIDOS Y NOMBRES/);
+});
+
+test("un DNI repetido se detecta aunque la consolidacion agrupe por nombre", () => {
+    // El caso que se perdia: dos personas distintas con el mismo DNI. Con IDENTITY_KEY
+    // "name" el dedupe del run no las junta y no las menciona; la revision si.
+    const r = caso();
+    const u = r.ubicaciones.find((x) => /^El DNI/.test(x.texto));
+    assert.ok(u, "deberia detectar el DNI repetido");
+    assert.match(u.texto, /"10000001"/);
+    assert.match(u.texto, /filas 2 y 5/);
+    assert.match(u.texto, /celdas D2, D5/);
+    assert.match(u.texto, /NO las une/);
+
+    const d = r.duplicados.find((x) => x.modo === "dni");
+    assert.equal(d.colapsa, false, "la consolidacion no une por DNI cuando agrupa por nombre");
+    assert.equal(d.columna, "Nro. DNI / CE");
+    assert.deepEqual(d.ubicaciones, [{ fila: 2, celda: "D2" }, { fila: 5, celda: "D5" }]);
+});
+
+test("el duplicado que si se colapsa se marca como tal", () => {
+    const d = caso().duplicados.find((x) => x.modo === "name");
+    assert.equal(d.colapsa, true);
+    assert.deepEqual(d.ubicaciones, [{ fila: 2, celda: "E2" }, { fila: 4, celda: "E4" }]);
+});
+
+test("la lista va ordenada por fila y no repite el duplicado en jerga del pipeline", () => {
+    const r = caso();
+    const filas = r.ubicaciones.map((u) => u.fila);
+    assert.deepEqual(filas, filas.slice().sort((a, b) => a - b), "deberia ir ordenada por fila");
+
+    // El ancla y DUPLICATE_COLLAPSED no son correcciones: el ancla es la fila 1 de todo
+    // archivo legible, y el duplicado ya sale una vez con las dos filas nombradas.
+    assert.equal(r.ubicaciones.filter((u) => u.code === "ANCHOR_FOUND").length, 0);
+    assert.equal(r.ubicaciones.filter((u) => u.code === "DUPLICATE_COLLAPSED").length, 0);
+    assert.equal(textos(r).filter((t) => /PEREZ LOPEZ ANA/.test(t)).length, 1);
+});
+
+test("cada ubicacion apunta a una celda real y esta en espanol", () => {
+    for (const u of caso().ubicaciones) {
+        assert.match(u.celda, /^[A-Z]+[0-9]+$/, `celda rara: ${u.celda}`);
+        assert.equal(u.celda.replace(/^[A-Z]+/, ""), String(u.fila), "la celda y la fila no coinciden");
+        assert.match(u.texto, /fila/, `sin "fila" en el texto: ${u.texto}`);
+    }
+});
+
+test("un libro ilegible trae la lista vacia, no rota", () => {
+    const r = reviewWorkbook(path.join(FIXTURES, "no-cuadro-sheet.xlsx"), { period: PERIODO });
+    assert.deepEqual(r.ubicaciones, []);
+    assert.deepEqual(r.duplicados, []);
 });
 
 /* ------------------------------------------------------------------ *

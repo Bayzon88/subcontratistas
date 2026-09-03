@@ -35,7 +35,7 @@ const { IssueList, SEVERITY, SEVERITY_ORDER } = require("./issues");
 const { parsePeriod } = require("./period");
 const { readWorkbook } = require("./workbook");
 const { createRowParser } = require("./schema");
-const { dedupe, conservationCheck } = require("./dedupe");
+const { dedupe, conservationCheck, KEY_COLUMN_BY_MODE } = require("./dedupe");
 const config = require("../config");
 
 /**
@@ -60,6 +60,144 @@ function worstSeverity(issues) {
         }
     }
     return worst;
+}
+
+/* ------------------------------------------------------------------ *
+ * Donde mirar en el Excel
+ *
+ * Every issue already carries `fila`, `celda` and `columna` - the pipeline records them
+ * so the Errores sheet can point at a cell. What it does not carry is a sentence an
+ * operator can act on without knowing the pipeline's vocabulary, and a duplicate carries
+ * only the winning row, addressed at the anchor cell (A1) rather than at the column the
+ * duplication is in. Both are fixed here, in the review, rather than in the pipeline:
+ * run.js writes these same issues into a spreadsheet whose wording the client already
+ * reads, and a review is free to say it differently.
+ * ------------------------------------------------------------------ */
+
+/** "E1" -> "E". The header cell already carries the column letters, so a data cell is
+ *  those letters plus the row - no index-to-letter arithmetic, and no way to disagree
+ *  with the addressing the rest of the pipeline uses. */
+function letrasDe(celdaEncabezado) {
+    const m = /^([A-Z]+)/.exec(String(celdaEncabezado || ""));
+    return m ? m[1] : null;
+}
+
+function celdaEn(headerMap, columna, fila) {
+    const h = headerMap && headerMap[columna];
+    const letras = h ? letrasDe(h.celda) : null;
+    return letras && Number.isInteger(fila) ? `${letras}${fila}` : null;
+}
+
+/**
+ * Duplicates under one identity mode, with a real cell per copy.
+ *
+ * The consolidation collapses on ONE key (config.IDENTITY_KEY). A review is diagnostic,
+ * so it reports the other one too: two rows sharing a DNI are worth seeing even when the
+ * run keys on names and would ship both. `colapsa` says which is which, so the report
+ * never implies the consolidation does something it does not.
+ *
+ * The issues raised by this pass are DISCARDED. They would otherwise double the counts
+ * in the summary, and the primary pass has already reported the collapse the run performs.
+ */
+function duplicadosPorModo(records, modo, { headerMap, scope, colapsa }) {
+    const columna = KEY_COLUMN_BY_MODE[modo] || null;
+    const { collapsed } = dedupe(records, { mode: modo, scope, issues: new IssueList() });
+
+    return collapsed.map((g) => ({
+        modo,
+        columna,
+        colapsa,
+        clave: g.key,
+        copias: g.copies,
+        // The pipeline addresses every source at the anchor cell, which is right for the
+        // Errores sheet and useless for "go look here": the cell that matters is the one
+        // in the identity column of each duplicated row.
+        ubicaciones: (g.sources || [])
+            .map((s) => ({ fila: s.fila, celda: celdaEn(headerMap, columna, s.fila) }))
+            .filter((u) => u.fila !== null && u.fila !== undefined)
+            .sort((a, b) => a.fila - b.fila),
+        conflictos: g.conflicts || [],
+    }));
+}
+
+/** Codes that name a cell and read better as plain Spanish than as pipeline vocabulary. */
+const TEXTO_POR_CODIGO = {
+    REQUIRED_MISSING: (i) => `Falta ${i.columna}`,
+    DATE_UNPARSEABLE: (i) => `No se entiende la fecha de ${i.columna}`,
+    DATE_IMPLAUSIBLE: (i) => `Fecha fuera de rango en ${i.columna}`,
+    DATE_TWO_DIGIT_YEAR: (i) => `Ano de dos digitos en ${i.columna}`,
+    DATE_FRACTIONAL_TRUNCATED: (i) => `Fecha con hora en ${i.columna}`,
+    CODE_OUT_OF_DOMAIN: (i) => `Codigo no valido en ${i.columna}`,
+    RUC_CHECK_DIGIT: () => "RUC con digito verificador incorrecto",
+    RUC_FORMAT: () => "RUC mal formado",
+    DNI_LENGTH: (i) => `DNI con largo invalido en ${i.columna}`,
+    ROW_NUMERIC_NAME: (i) => `${i.columna} tiene un numero en vez de un nombre`,
+    TEXT_NORMALIZED: (i) => `Se limpio el texto de ${i.columna}`,
+    ROW_EMPTY: () => "Fila vacia",
+    COLUMN_MISSING: (i) => `Falta la columna ${i.columna} en todo el archivo`,
+    HEADER_DUPLICATE: (i) => `Encabezado repetido: ${i.columna}`,
+    HEADER_UNRECOGNIZED: (i) => `Encabezado no reconocido: ${i.columna}`,
+};
+
+/** " (\"X\")" when there was an offending value worth quoting. */
+function conValor(i) {
+    if (i.valor === null || i.valor === undefined || i.valor === "") return "";
+    return ` (valor: "${String(i.valor).slice(0, 60)}")`;
+}
+
+/**
+ * Codes that carry a row but are not something to go and fix.
+ *
+ * ANCHOR_FOUND records where the header row was found - it is row 1 of every readable
+ * file and belongs in the detail, not in a list of corrections. DUPLICATE_COLLAPSED is
+ * covered by `duplicados`, which names every row involved instead of only the winner;
+ * leaving it here would print the same duplicate twice, once in pipeline vocabulary.
+ */
+const NO_ES_CORRECCION = new Set(["ANCHOR_FOUND", "DUPLICATE_COLLAPSED"]);
+
+/** Where to look, in Spanish, one line per thing to fix, ordered by row. */
+function ubicacionesDe(issues, duplicados, headerMap) {
+    const salida = [];
+
+    for (const i of issues.items) {
+        // Sin fila no hay donde mirar: eso es un problema del archivo entero y ya sale en
+        // el veredicto y en el detalle.
+        if (i.fila === null || i.fila === undefined) continue;
+        if (NO_ES_CORRECCION.has(i.code)) continue;
+
+        const hacer = TEXTO_POR_CODIGO[i.code];
+        const base = hacer ? hacer(i) : i.message;
+        const celda = i.celda || celdaEn(headerMap, i.columna, i.fila);
+        salida.push({
+            fila: i.fila,
+            celda,
+            columna: i.columna,
+            severity: i.severity,
+            code: i.code,
+            texto: `${base} en la fila ${i.fila}${celda ? ` (celda ${celda})` : ""}${conValor(i)}.`,
+        });
+    }
+
+    for (const d of duplicados) {
+        if (d.ubicaciones.length === 0) continue;
+        const filas = d.ubicaciones.map((u) => u.fila).join(" y ");
+        const celdas = d.ubicaciones.map((u) => u.celda).filter(Boolean).join(", ");
+        const que = d.modo === "dni" ? "El DNI" : "El nombre";
+        const cola = d.colapsa
+            ? "La consolidacion dejaria una sola de esas filas."
+            : "La consolidacion NO las une, porque agrupa por otra columna: revise si son la misma persona.";
+        salida.push({
+            fila: d.ubicaciones[0].fila,
+            celda: d.ubicaciones[0].celda,
+            columna: d.columna,
+            severity: d.colapsa ? "WARNING" : "ERROR",
+            code: "DUPLICADO",
+            texto: `${que} "${d.clave}" se repite en las filas ${filas}`
+                + `${celdas ? ` (celdas ${celdas})` : ""}, columna ${d.columna}. ${cola}`,
+        });
+    }
+
+    return salida.sort((a, b) => a.fila - b.fila || String(a.celda).localeCompare(String(b.celda)));
 }
 
 /**
@@ -101,6 +239,7 @@ function reviewWorkbook(filePath, o = {}) {
             stats: { filasLeidas: 0, filasRechazadas: 0, filasColapsadas: 0, filasAceptadas: 0, filasEnBlanco: 0 },
             columnas: { faltantes: read.missingColumns, noReconocidas: [] },
             duplicados: [],
+            ubicaciones: [],
             conservacion: null,
         });
     }
@@ -126,11 +265,21 @@ function reviewWorkbook(filePath, o = {}) {
 
     // The key is computed AFTER normalization (BUG-21), which is why this runs on
     // `accepted` records and not on raw rows.
-    const deduped = dedupe(accepted, {
-        mode: o.identityKey || config.IDENTITY_KEY,
-        scope: o.dedupeScope,
-        issues,
-    });
+    const modo = o.identityKey || config.IDENTITY_KEY;
+    const deduped = dedupe(accepted, { mode: modo, scope: o.dedupeScope, issues });
+
+    // Both identity keys are reported. The run collapses on one of them; the other is
+    // still something the operator has to look at - two rows with the same DNI under
+    // different names is a data error whether or not this month's key happens to catch it.
+    const otro = modo === "dni" ? "name" : "dni";
+    const duplicados = [
+        ...duplicadosPorModo(accepted, modo, {
+            headerMap: read.headerMap, scope: o.dedupeScope, colapsa: true,
+        }),
+        ...duplicadosPorModo(accepted, otro, {
+            headerMap: read.headerMap, scope: o.dedupeScope, colapsa: false,
+        }),
+    ];
 
     const filasRechazadas = read.stats.rowsRejected + schemaRejected;
     const conservacion = conservationCheck({
@@ -157,7 +306,8 @@ function reviewWorkbook(filePath, o = {}) {
             faltantes: read.missingColumns,
             noReconocidas: read.unrecognizedHeaders,
         },
-        duplicados: deduped.collapsed,
+        duplicados,
+        ubicaciones: ubicacionesDe(issues, duplicados, read.headerMap),
         conservacion,
     });
 }
@@ -176,6 +326,8 @@ function report(o) {
         stats: o.stats,
         columnas: o.columnas,
         duplicados: o.duplicados,
+        // Donde mirar en el Excel, ordenado por fila. Es lo primero que muestra la pagina.
+        ubicaciones: o.ubicaciones,
         conservacion: o.conservacion,
         resumen: {
             porSeveridad: o.issues.counts(),

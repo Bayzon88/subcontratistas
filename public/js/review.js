@@ -146,25 +146,62 @@ function bloqueColumnas(columnas) {
     return partes.join("");
 }
 
-/** Los duplicados que la consolidacion colapsaria, con las filas de origen. */
+/**
+ * Donde corregir. Es lo que el operador viene a buscar: una linea por cosa que arreglar,
+ * con la celda del Excel, ordenada por fila. El servidor ya la arma y la ordena; aqui
+ * solo se pinta.
+ */
+function bloqueUbicaciones(ubicaciones) {
+    if (!ubicaciones || ubicaciones.length === 0) return "";
+    const filas = ubicaciones.slice(0, MAX_FILAS).map((u) => {
+        const s = SEVERIDAD[u.severity] || { texto: u.severity, clase: "" };
+        return `<tr>
+            <td><span class="pastilla ${s.clase}">${escapar(s.texto)}</span></td>
+            <td class="celda">${escapar(u.celda || (u.fila ? "fila " + u.fila : ""))}</td>
+            <td>${escapar(u.texto)}</td>
+          </tr>`;
+    }).join("");
+    const resto = ubicaciones.length > MAX_FILAS
+        ? `<p class="nota">Se muestran ${MAX_FILAS} de ${ubicaciones.length}.</p>` : "";
+    return `<h3>Donde corregir (${ubicaciones.length})</h3>
+      <p class="nota">Cada linea apunta a una celda del archivo, en orden de fila.</p>
+      <div class="tabla-scroll"><table class="tabla">
+        <thead><tr><th>Gravedad</th><th>Celda</th><th>Que corregir</th></tr></thead>
+        <tbody>${filas}</tbody>
+      </table></div>${resto}`;
+}
+
+/** Los duplicados, por nombre y por DNI, con las celdas de cada copia. */
 function bloqueDuplicados(duplicados) {
     if (!duplicados || duplicados.length === 0) return "";
     const filas = duplicados.slice(0, MAX_FILAS).map((d) => {
-        const origenes = (d.sources || [])
-            .map((s) => (s && s.fila !== null && s.fila !== undefined ? `fila ${s.fila}` : "fila ?"))
-            .join(", ");
+        const celdas = (d.ubicaciones || [])
+            .map((u) => u.celda || (u.fila ? `fila ${u.fila}` : ""))
+            .filter(Boolean).join(", ");
+        // `colapsa` distingue el duplicado que la consolidacion realmente une del que solo
+        // se reporta. Decir lo contrario haria que el operador confie en una union que no
+        // va a ocurrir.
+        const efecto = d.colapsa
+            ? "Se unen en una fila"
+            : "<strong>No se unen</strong>";
         return `<tr>
-            <td>${escapar(d.key)}</td>
-            <td>${escapar(d.copies)}</td>
-            <td>${escapar(origenes)}</td>
+            <td>${escapar(d.columna)}</td>
+            <td>${escapar(d.clave)}</td>
+            <td>${escapar(d.copias)}</td>
+            <td class="celda">${escapar(celdas)}</td>
+            <td>${efecto}</td>
           </tr>`;
     }).join("");
     const resto = duplicados.length > MAX_FILAS
         ? `<p class="nota">Se muestran ${MAX_FILAS} de ${duplicados.length}.</p>` : "";
     return `<h3>Duplicados (${duplicados.length})</h3>
-      <p class="nota">La consolidacion dejaria una sola fila por cada uno de estos.</p>
+      <p class="nota">
+        Se revisa por <strong>nombre</strong> y por <strong>DNI</strong>. La consolidacion
+        agrupa por una sola de las dos, asi que un duplicado marcado &laquo;no se unen&raquo;
+        igual hay que mirarlo: puede ser la misma persona cargada dos veces.
+      </p>
       <div class="tabla-scroll"><table class="tabla">
-        <thead><tr><th>Persona</th><th>Copias</th><th>Filas</th></tr></thead>
+        <thead><tr><th>Columna</th><th>Valor repetido</th><th>Copias</th><th>Celdas</th><th>En el reporte</th></tr></thead>
         <tbody>${filas}</tbody>
       </table></div>${resto}`;
 }
@@ -215,6 +252,7 @@ function mostrar(informe) {
         ${cifra(s.filasAceptadas, "quedarian")}
       </ul>
       ${bloqueColumnas(informe.columnas)}
+      ${bloqueUbicaciones(informe.ubicaciones)}
       ${bloqueDuplicados(informe.duplicados)}
       ${bloqueIncidencias(informe.issues)}
     `;

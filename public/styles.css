@@ -468,3 +468,10 @@ details summary {
   border-color: var(--borde);
   box-shadow: inset 0 -2px 0 var(--tinta);
 }
+
+/* Referencias de celda: monoespaciado, para que E2 y E12 se alineen al leer la lista. */
+.tabla td.celda {
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
