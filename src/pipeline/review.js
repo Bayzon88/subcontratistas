@@ -155,11 +155,45 @@ function conValor(i) {
  */
 const NO_ES_CORRECCION = new Set(["ANCHOR_FOUND", "DUPLICATE_COLLAPSED"]);
 
+/**
+ * Take the file's own name out of a message.
+ *
+ * The pipeline embeds the filename so the Errores sheet can say WHICH subcontratista
+ * failed - right for a run over many files. A review is one file the operator just
+ * picked, so the name adds nothing and can be enormous ("Copia de Formato de Reporte de
+ * Headcount -2026_...xlsx"); every line would carry it. It is replaced by "el archivo".
+ *
+ * Only the review does this - the Errores sheet keeps the name. Literal string replaces,
+ * not regex, so a filename with dots or parentheses cannot break the pattern. The
+ * subcontratista label goes too: in a review it is the filename stem, the same thing.
+ */
+function limpiarMensaje(message, { archivo, subcontratista }) {
+    let m = String(message === null || message === undefined ? "" : message);
+    const a = archivo ? String(archivo) : "";
+    const s = subcontratista ? String(subcontratista) : "";
+    if (a && s) {
+        // Forma "SUBCONTRATA/archivo.xlsx:12" que usa el mensaje de duplicados. La celda
+        // ya se muestra en la tabla de Duplicados; aqui basta con la fila.
+        m = m.split(`${s}/${a}:`).join("fila ");
+        m = m.split(`${s}/${a}`).join("el archivo");
+    }
+    if (a) {
+        m = m.split(` (${a})`).join("");                       // el nombre entre parentesis
+        m = m.split(`el archivo "${a}"`).join("el archivo");    // evita "el archivo el archivo"
+        m = m.split(`"${a}"`).join("el archivo");
+    }
+    if (s) {
+        m = m.split(` del subcontratista "${s}"`).join("");
+        m = m.split(` (${s})`).join("");
+    }
+    return m;
+}
+
 /** Where to look, in Spanish, one line per thing to fix, ordered by row. */
-function ubicacionesDe(issues, duplicados, headerMap) {
+function ubicacionesDe(items, duplicados, headerMap) {
     const salida = [];
 
-    for (const i of issues.items) {
+    for (const i of items) {
         // Sin fila no hay donde mirar: eso es un problema del archivo entero y ya sale en
         // el veredicto y en el detalle.
         if (i.fila === null || i.fila === undefined) continue;
@@ -236,6 +270,9 @@ function reviewWorkbook(filePath, o = {}) {
             archivo,
             period,
             issues,
+            items: issues.items.map((i) => ({
+                ...i, message: limpiarMensaje(i.message, { archivo, subcontratista }),
+            })),
             stats: { filasLeidas: 0, filasRechazadas: 0, filasColapsadas: 0, filasAceptadas: 0, filasEnBlanco: 0 },
             columnas: { faltantes: read.missingColumns, noReconocidas: [] },
             duplicados: [],
@@ -281,6 +318,10 @@ function reviewWorkbook(filePath, o = {}) {
         }),
     ];
 
+    const itemsLimpios = issues.items.map((i) => ({
+        ...i, message: limpiarMensaje(i.message, { archivo, subcontratista }),
+    }));
+
     const filasRechazadas = read.stats.rowsRejected + schemaRejected;
     const conservacion = conservationCheck({
         read: read.stats.rowsFound,
@@ -307,7 +348,8 @@ function reviewWorkbook(filePath, o = {}) {
             noReconocidas: read.unrecognizedHeaders,
         },
         duplicados,
-        ubicaciones: ubicacionesDe(issues, duplicados, read.headerMap),
+        ubicaciones: ubicacionesDe(itemsLimpios, duplicados, read.headerMap),
+        items: itemsLimpios,
         conservacion,
     });
 }
@@ -334,7 +376,9 @@ function report(o) {
             porCodigo: o.issues.countsByCode(),
             total: o.issues.length,
         },
-        issues: o.issues.items,
+        // Mensajes ya sin el nombre del archivo; los conteos de arriba siguen saliendo del
+        // IssueList completo, que no depende del texto.
+        issues: o.items,
     };
 }
 

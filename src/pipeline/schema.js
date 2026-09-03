@@ -586,6 +586,33 @@ function parseRow(rawRow, ctx) {
 }
 
 /** The body of parseRow, against an already-compiled schema. */
+/**
+ * Zod speaks English. Its messages reach the operator - in the review's detail table and
+ * in the Errores sheet that ships inside the consolidated workbook - so they are
+ * translated here, at the one place they enter a human-facing string.
+ *
+ * The parenthetical is a hint, not the headline: the message already says, in Spanish,
+ * "es obligatorio" or "no cumple el esquema". So an unrecognized Zod string collapses to
+ * a generic "valor invalido" rather than leaking English into a Spanish report.
+ */
+const TIPO_ZOD = Object.freeze({
+    string: "texto", number: "numero", date: "fecha", boolean: "si/no",
+    integer: "entero", bigint: "entero", array: "lista", object: "dato",
+    null: "vacio", undefined: "vacio", nan: "un valor no numerico", void: "vacio",
+});
+
+function traducirZod(msg) {
+    if (typeof msg !== "string" || msg === "") return "valor invalido";
+    const exp = /^Expected (\w+), received (\w+)$/.exec(msg);
+    if (exp) {
+        const esperado = TIPO_ZOD[exp[1]] || exp[1];
+        const recibido = TIPO_ZOD[exp[2]] || exp[2];
+        return `se esperaba ${esperado} y llego ${recibido}`;
+    }
+    if (msg === "Required") return "falta el valor";
+    return "valor invalido";
+}
+
 function parseWithSchema(rawRow, schema) {
     const bag = schema[ROW_STATE];
     const bound = bag.ctx;
@@ -664,7 +691,7 @@ function parseWithSchema(rawRow, schema) {
                 reason = CODE.REQUIRED_MISSING;
                 bound.issues.error({
                     code: CODE.REQUIRED_MISSING,
-                    message: `fila ${state.prov.filaOrigen ?? "?"} rechazada: "${canonical}" es obligatorio (${zi.message})`,
+                    message: `fila ${state.prov.filaOrigen ?? "?"} rechazada: "${canonical}" es obligatorio (${traducirZod(zi.message)})`,
                     ...cellLocation(bound, state, canonical),
                     valor: raw,
                 });
@@ -677,7 +704,7 @@ function parseWithSchema(rawRow, schema) {
             // reported at WARNING so the field is nulled and the row survives.
             bound.issues.warning({
                 code: CODE.CODE_OUT_OF_DOMAIN,
-                message: `${canonical} no cumple el esquema (${zi.message}): se anula`,
+                message: `${canonical} no cumple el esquema (${traducirZod(zi.message)}): se anula`,
                 ...cellLocation(bound, state, canonical),
                 valor: raw,
                 detalle: { zod: zi.code, esperado: zi.message },

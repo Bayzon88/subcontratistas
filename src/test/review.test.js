@@ -230,6 +230,47 @@ test("cada ubicacion apunta a una celda real y esta en espanol", () => {
     }
 });
 
+test("los mensajes van en espanol: la coletilla de Zod se traduce", () => {
+    const r = caso();
+    const rechazo = r.issues.find((i) => i.code === "REQUIRED_MISSING" && i.fila === 6);
+    assert.ok(rechazo, "deberia haber un rechazo por nombre vacio en la fila 6");
+    // Antes: "(Expected string, received null)". Ahora, castellano.
+    assert.match(rechazo.message, /se esperaba texto y llego vacio/);
+    assert.doesNotMatch(rechazo.message, /Expected|received|Required|Invalid/);
+});
+
+test("ningun mensaje del informe deja ingles de Zod", () => {
+    for (const f of todos()) {
+        const r = reviewWorkbook(path.join(FIXTURES, f), { period: PERIODO });
+        for (const i of r.issues) {
+            assert.doesNotMatch(i.message, /\b(Expected|received|Required|Invalid)\b/, `${f}: ${i.message}`);
+        }
+    }
+});
+
+test("el nombre del archivo no aparece en los mensajes, ni siquiera uno larguisimo", () => {
+    const largo = "Copia de Formato de Reporte de Headcount -2026_Subcontratistas Agosto";
+    const r = reviewWorkbook(CASOS, { period: PERIODO, archivo: largo + ".xlsx", subcontratista: largo });
+    for (const i of r.issues) {
+        assert.ok(!i.message.includes(largo), `el mensaje muestra el nombre del archivo: ${i.message}`);
+    }
+    // Y se dice "el archivo" en su lugar donde el mensaje nombraba uno.
+    const rechazo = r.issues.find((i) => i.code === "ROW_NUMERIC_NAME" || i.code === "REQUIRED_MISSING");
+    assert.ok(rechazo);
+});
+
+test("un archivo ilegible tampoco muestra su nombre en el motivo", () => {
+    // SHEET_NOT_FOUND / WORKBOOK_UNREADABLE llevan el nombre en el texto; el informe no.
+    const nombre = "MI ARCHIVO DE PRUEBA.xlsx";
+    const r = reviewWorkbook(path.join(FIXTURES, "no-cuadro-sheet.xlsx"),
+        { period: PERIODO, archivo: nombre, subcontratista: "MI ARCHIVO DE PRUEBA" });
+    assert.equal(r.ok, false);
+    for (const i of r.issues) {
+        assert.ok(!i.message.includes(nombre), `el motivo muestra el nombre: ${i.message}`);
+    }
+    assert.ok(r.issues.some((i) => /el archivo/.test(i.message)), "deberia decir \"el archivo\"");
+});
+
 test("un libro ilegible trae la lista vacia, no rota", () => {
     const r = reviewWorkbook(path.join(FIXTURES, "no-cuadro-sheet.xlsx"), { period: PERIODO });
     assert.deepEqual(r.ubicaciones, []);
