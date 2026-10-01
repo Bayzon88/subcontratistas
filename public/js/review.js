@@ -332,12 +332,12 @@ async function revisar() {
 
     const archivo = el.archivo.files && el.archivo.files[0];
     if (!archivo) {
-        mostrarError("Falta el archivo", "Seleccione un archivo .xlsx.");
+        mostrarError("Falta el archivo", "Seleccione un libro .xlsx, .xlsm o .xls.");
         return;
     }
-    if (!/\.xlsx$/i.test(archivo.name)) {
+    if (!/\.(xlsx|xlsm|xls)$/i.test(archivo.name)) {
         mostrarError("Formato invalido",
-            `Se revisa un archivo .xlsx a la vez (se eligio "${archivo.name}").`);
+            `Se revisa un libro .xlsx, .xlsm o .xls a la vez (se eligio "${archivo.name}").`);
         return;
     }
 
@@ -393,7 +393,7 @@ el.zona.addEventListener("drop", (e) => {
 el.archivo.addEventListener("change", () => {
     el.etiquetaArchivo.textContent = el.archivo.files && el.archivo.files[0]
         ? el.archivo.files[0].name
-        : "Seleccione el archivo .xlsx o arrastrelo aqui";
+        : "Seleccione el libro de Excel o arrastrelo aqui";
 });
 // Delegado en el contenedor: cada dibujo reemplaza el innerHTML, asi que un listener
 // puesto sobre el checkbox se perderia en el primer clic.

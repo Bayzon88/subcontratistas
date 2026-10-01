@@ -77,7 +77,7 @@ const fileUpload = require("express-fileupload");
 
 const config = require("./config");
 const { parsePeriod, previousMonth, PeriodError } = require("./pipeline/period");
-const { makeRunDir, removeRunDir } = require("./pipeline/zip");
+const { makeRunDir, removeRunDir, workbookExtensionOf } = require("./pipeline/zip");
 const { reviewWorkbook, subcontratistaFromFilename } = require("./pipeline/review");
 
 /* ------------------------------------------------------------------ *
@@ -128,9 +128,46 @@ function esZipPorNombre(nombre) {
     return typeof nombre === "string" && /\.zip$/i.test(nombre.trim());
 }
 
-/** /review takes one subcontratista's workbook, not the month's zip. */
-function esXlsxPorNombre(nombre) {
-    return typeof nombre === "string" && /\.xlsx$/i.test(nombre.trim());
+/**
+ * /review takes one subcontratista's workbook, not the month's zip.
+ *
+ * The accepted set is config.WORKBOOK_EXTENSIONS, reached through zip.js so the review
+ * page and the consolidation path can never disagree about what a workbook is. They did
+ * disagree once: zip.js tested the single literal ".xlsx" and a subcontratista who sent a
+ * legacy .xls had their whole company reported as "folder contains no workbook".
+ */
+function esLibroPorNombre(nombre) {
+    return typeof nombre === "string" && workbookExtensionOf(nombre.trim()) !== null;
+}
+
+/** First `n` bytes of a file, or a shorter buffer if that is all there is. */
+function cabecera(filePath, n) {
+    let fd = null;
+    try {
+        fd = fs.openSync(filePath, "r");
+        const head = Buffer.alloc(n);
+        const leidos = fs.readSync(fd, head, 0, n, 0);
+        return head.subarray(0, leidos);
+    } catch {
+        return Buffer.alloc(0);
+    } finally {
+        if (fd !== null) try { fs.closeSync(fd); } catch { /* nothing to do */ }
+    }
+}
+
+/** PK\x03\x04 local header, PK\x05\x06 empty archive, PK\x07\x08 spanned. */
+function esFirmaZip(head) {
+    return head.length >= 4 && head[0] === 0x50 && head[1] === 0x4b &&
+        ((head[2] === 0x03 && head[3] === 0x04) ||
+            (head[2] === 0x05 && head[3] === 0x06) ||
+            (head[2] === 0x07 && head[3] === 0x08));
+}
+
+/** OLE2 / Compound File: D0 CF 11 E0 A1 B1 1A E1. This is what a legacy .xls is. */
+function esFirmaOle2(head) {
+    const MAGIC = [0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1];
+    if (head.length < MAGIC.length) return false;
+    return MAGIC.every((b, i) => head[i] === b);
 }
 
 /**
@@ -139,21 +176,24 @@ function esXlsxPorNombre(nombre) {
  * extension check alone cannot do.
  */
 function pareceZip(filePath) {
-    let fd = null;
-    try {
-        fd = fs.openSync(filePath, "r");
-        const head = Buffer.alloc(4);
-        const leidos = fs.readSync(fd, head, 0, 4, 0);
-        if (leidos < 4) return false;
-        return head[0] === 0x50 && head[1] === 0x4b &&
-            ((head[2] === 0x03 && head[3] === 0x04) ||
-                (head[2] === 0x05 && head[3] === 0x06) ||
-                (head[2] === 0x07 && head[3] === 0x08));
-    } catch {
-        return false;
-    } finally {
-        if (fd !== null) try { fs.closeSync(fd); } catch { /* nothing to do */ }
-    }
+    return esFirmaZip(cabecera(filePath, 4));
+}
+
+/**
+ * A workbook container, by its bytes rather than its name.
+ *
+ * TWO signatures, because the two formats are nothing alike: .xlsx and .xlsm are ZIP
+ * archives of OOXML parts, while a legacy .xls is an OLE2 compound file. The review
+ * route used to call pareceZip() for everything, with a comment reading ".xlsx is a zip
+ * container, so the same local-file-header check applies" - true of .xlsx, and the exact
+ * reason a real .xls would have been refused as "no parece un archivo valido" even after
+ * the extension check was widened.
+ *
+ * Still refuses the .exe renamed to .xls, which is the point of reading the bytes.
+ */
+function pareceLibro(filePath) {
+    const head = cabecera(filePath, 8);
+    return esFirmaZip(head) || esFirmaOle2(head);
 }
 
 /** express-fileupload's temp file must not survive a rejected upload. */
@@ -796,7 +836,7 @@ function createServer(opciones = {}) {
             if (!archivo) {
                 return res.status(400).json({
                     error: "falta el archivo",
-                    mensaje: "No se recibio ningun archivo. Seleccione un .xlsx.",
+                    mensaje: "No se recibio ningun archivo. Seleccione un .xlsx, .xlsm o .xls.",
                 });
             }
             if (archivo.truncated) {
@@ -805,19 +845,19 @@ function createServer(opciones = {}) {
                     mensaje: `El archivo supera el limite de ${Math.round(maxUploadBytes / (1024 * 1024))} MB.`,
                 });
             }
-            if (!esXlsxPorNombre(archivo.name)) {
+            if (!esLibroPorNombre(archivo.name)) {
                 return res.status(400).json({
                     error: "formato invalido",
-                    mensaje: `Se revisa un archivo .xlsx a la vez (se recibio "${archivo.name}"). `
+                    mensaje: `Se revisa un libro de Excel a la vez (.xlsx, .xlsm o .xls; `
+                        + `se recibio "${archivo.name}"). `
                         + "Para el zip completo del mes use la pagina principal.",
                 });
             }
-            // .xlsx is a zip container, so the same local-file-header check applies and
-            // refuses anything renamed to .xlsx.
-            if (!pareceZip(archivo.tempFilePath)) {
+            // By bytes, not by name: ZIP for .xlsx/.xlsm, OLE2 for a legacy .xls.
+            if (!pareceLibro(archivo.tempFilePath)) {
                 return res.status(400).json({
                     error: "archivo invalido",
-                    mensaje: `"${archivo.name}" no parece un archivo .xlsx valido.`,
+                    mensaje: `"${archivo.name}" no parece un libro de Excel valido.`,
                 });
             }
             if (archivo.size > config.MAX_REVIEW_BYTES) {

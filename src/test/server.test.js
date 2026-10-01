@@ -658,3 +658,73 @@ test("el zip subido va a un directorio propio, con separador (BUG-32)", async ()
 
     await esperarEstado(app, alta.json.id, ["listo", "error"]);
 });
+
+/* ------------------------------------------------------------------ *
+ * POST /review - the container, not the content
+ * ------------------------------------------------------------------ *
+ * The review page grew its OWN extension gate, independent of pipeline/zip.js: a name
+ * test for ".xlsx" and a local-file-header check whose comment read ".xlsx is a zip
+ * container, so the same local-file-header check applies". Both are true of .xlsx and
+ * both reject a legitimate legacy .xls, which is an OLE2 compound file sharing no byte
+ * with a ZIP. Widening only the name would have turned one refusal into another.
+ */
+
+const XLSX = require("xlsx");
+const { CANONICAL } = require("../pipeline/columns");
+
+/** A real workbook of the given bookType - all 18 canonical headers, so the RUC anchor
+ *  clears the >=8-of-18 threshold and the review exercises the real path. */
+function libroDe(bookType) {
+    const fila = CANONICAL.map((n) => {
+        if (n === "RUC") return "20504039123";
+        if (n === "EMPRESA" || n === "CONTRATISTA PRNCIPAL") return "SINTETICA SAC";
+        if (n === "Nro. DNI / CE") return "40100001";
+        if (n === "APELLIDOS Y NOMBRES") return "PEREZ LOPEZ JUAN";
+        if (n === "GENERO") return "masculino";
+        return null;
+    });
+    const ws = XLSX.utils.aoa_to_sheet([CANONICAL.slice(), fila]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Cuadro");
+    return XLSX.write(wb, { type: "buffer", bookType });
+}
+
+function revisar(port, { nombre, datos, periodo = PERIODO }) {
+    const m = multipart({ periodo }, { campo: "archivo", nombre, datos });
+    return pedir(port, "/review", { method: "POST", headers: m.headers, cuerpo: m.cuerpo });
+}
+
+test("POST /review acepta un .xls real (OLE2), no solo .xlsx", async () => {
+    const { port } = await levantar();
+    const xls = libroDe("biff8");
+    assert.equal(xls[0], 0xd0, "el fixture debe ser OLE2, no un .xlsx renombrado");
+    const res = await revisar(port, { nombre: "personal.xls", datos: xls });
+    assert.equal(res.status, 200, res.texto.slice(0, 300));
+});
+
+test("POST /review acepta .xlsx y .xlsm", async () => {
+    const { port } = await levantar();
+    for (const [bookType, nombre] of [["xlsx", "lista.xlsx"], ["xlsm", "lista.xlsm"]]) {
+        const res = await revisar(port, { nombre, datos: libroDe(bookType) });
+        assert.equal(res.status, 200, `${nombre}: ${res.texto.slice(0, 200)}`);
+    }
+});
+
+test("POST /review rechaza por NOMBRE lo que no es un libro", async () => {
+    const { port } = await levantar();
+    const res = await revisar(port, { nombre: "constancia.pdf", datos: libroDe("xlsx") });
+    assert.equal(res.status, 400);
+    assert.equal(res.json.error, "formato invalido");
+});
+
+test("POST /review rechaza por BYTES un ejecutable renombrado a .xls", async () => {
+    // The whole point of reading the header: the name is caller-chosen, the bytes are not.
+    const { port } = await levantar();
+    const res = await revisar(port, {
+        nombre: "personal.xls",
+        datos: Buffer.from([0x4d, 0x5a, 0x90, 0x00, 0x03, 0x00, 0x00, 0x00, 0x04]),
+    });
+    assert.equal(res.status, 400);
+    assert.equal(res.json.error, "archivo invalido");
+    assert.match(res.json.mensaje, /no parece un libro de Excel valido/);
+});
