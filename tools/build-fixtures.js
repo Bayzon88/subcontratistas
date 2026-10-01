@@ -1008,6 +1008,41 @@ function miniWorkbook(startIndex) {
     return { Cuadro: sheet(cols(), [0, 1, 2].map(i => cleanRow(startIndex + i))) };
 }
 
+/* ---- 18. legacy-xls ----------------------------------------------------- */
+// The container, not the content. A subcontratista sent a real .xls and the whole company
+// was reported as "folder contains no workbook" - because pipeline/zip.js tested one
+// literal, ".xlsx", while the enum member was even named XLSX. The reader never had a
+// problem: SheetJS sniffs OLE2/BIFF and parses biff8, biff5 and an HTML table saved as
+// .xls identically to an .xlsx, anchor and 1904 flag included.
+//
+// So this fixture asserts a NEGATIVE that nothing else can: that the accepted set is
+// config.WORKBOOK_EXTENSIONS and not the extension of whatever the generator happens to
+// emit. Its expectation is deliberately identical to a clean .xlsx - the container must
+// make no difference at all downstream.
+{
+    const rows = [0, 1, 2, 3, 4].map(i => cleanRow(i));
+    workbook({
+        name: "legacy-xls",
+        ext: ".xls",
+        bookType: "biff8",
+        pathology: "a real legacy BIFF8 .xls - accepted and parsed exactly like an .xlsx",
+        spec: ["03 §1.1", "config.WORKBOOK_EXTENSIONS"],
+        subcontratista: "SINTETICA ANDINA CONTRATISTAS",
+        sheets: { Cuadro: sheet(cols(), rows) },
+        expected: {
+            read: {
+                ok: true, hoja: "Cuadro", celdaAncla: "A1", filaEncabezado: 1,
+                rangoEncabezados: "A1:R1", rangoDatos: "A1:R6",
+                rowsFound: 5, rowsRejected: 0, rowsReturned: 5, blankRows: 0,
+                missingColumns: [], unrecognizedHeaders: [],
+                issues: issues([iss("ANCHOR_FOUND", "INFO")]),
+            },
+            parse: { accepted: 5, rejected: 0, issues: [] },
+            records: records(2, rows.map(r => cleanExpect(r))),
+        },
+    });
+}
+
 const CONTAINER_FIXTURES = [
     {
         name: "folder-two-xlsx",
@@ -1114,12 +1149,14 @@ const CONTAINER_FIXTURES = [
  * Emit
  * ------------------------------------------------------------------ */
 
-function writeWorkbook(sheets, file) {
+function writeWorkbook(sheets, file, bookType) {
     const wb = XLSX.utils.book_new();
     for (const [name, aoa] of Object.entries(sheets)) {
         XLSX.utils.book_append_sheet(wb, XLSX.utils.aoa_to_sheet(aoa), name);
     }
-    XLSX.writeFile(wb, file);
+    // bookType is what makes a real legacy container rather than an .xlsx wearing the
+    // wrong extension - "biff8" emits an OLE2 compound file (magic d0cf11e0a1b11ae1).
+    XLSX.writeFile(wb, file, bookType ? { bookType } : undefined);
 }
 
 function writeJson(file, value) {
@@ -1145,10 +1182,11 @@ function build() {
     const manifest = { period: PERIOD, workbooks: [], containers: [] };
 
     for (const f of WORKBOOKS) {
-        const file = path.join(FIXTURES, `${f.name}.xlsx`);
-        writeWorkbook(f.sheets, file);
+        const ext = f.ext || ".xlsx";
+        const file = path.join(FIXTURES, `${f.name}${ext}`);
+        writeWorkbook(f.sheets, file, f.bookType);
         writeJson(path.join(FIXTURES, `${f.name}.expected.json`), {
-            fixture: `${f.name}.xlsx`,
+            fixture: `${f.name}${ext}`,
             kind: "workbook",
             pathology: f.pathology,
             spec: f.spec,

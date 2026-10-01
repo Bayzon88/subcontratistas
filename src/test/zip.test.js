@@ -125,7 +125,7 @@ describe("classifyEntry (case table)", () => {
         [ENTRY_KIND.LOCKFILE]: CODE.SKIPPED_LOCKFILE,
         [ENTRY_KIND.OTHER]: CODE.SKIPPED_NON_XLSX,
         [ENTRY_KIND.UNSAFE]: CODE.ZIP_TRAVERSAL,
-        [ENTRY_KIND.XLSX]: null,
+        [ENTRY_KIND.WORKBOOK]: null,
         [ENTRY_KIND.DIRECTORY]: null,
     };
 
@@ -223,28 +223,68 @@ describe("extractZip", () => {
         assert.deepEqual(listTree(dest), ["Empresa A/", "Empresa A/lista.xlsx"]);
     });
 
-    test("non-.xlsx entries: one INFO each, listed by name, folder still created", () => {
+    test("non-workbook entries: one INFO each, listed by name, folder still created", () => {
         const zip = buildZip("mixed", {
             "Empresa A/constancia.pdf": payload(),
             "Empresa A/personal.csv": payload(),
             "Empresa A/foto.JPG": payload(),
-            "Empresa A/lista.xls": payload(),
             "Empresa B/lista.xlsx": payload(),
         });
         const dest = scratch("mixed-dest");
         const issues = new IssueList();
         const summary = extractZip(zip, dest, issues);
 
-        assert.equal(summary.skipped.nonXlsx, 4);
+        assert.equal(summary.skipped.nonXlsx, 3);
         assert.deepEqual(issues.byCode(CODE.SKIPPED_NON_XLSX).map(i => i.archivo).sort(), [
-            "constancia.pdf", "foto.JPG", "lista.xls", "personal.csv",
+            "constancia.pdf", "foto.JPG", "personal.csv",
         ]);
         for (const i of issues.items) assert.equal(i.severity, SEVERITY.INFO);
         assert.deepEqual(summary.nonXlsxNames.sort(), [
-            "Empresa A/constancia.pdf", "Empresa A/foto.JPG", "Empresa A/lista.xls", "Empresa A/personal.csv",
+            "Empresa A/constancia.pdf", "Empresa A/foto.JPG", "Empresa A/personal.csv",
         ]);
         // "Empresa A/" exists but is empty: walkInput must be able to say so.
         assert.deepEqual(listTree(dest), ["Empresa A/", "Empresa B/", "Empresa B/lista.xlsx"]);
+    });
+
+    test("every accepted extension is extracted, not skipped", () => {
+        // The regression this guards: .xls used to classify as OTHER, so a subcontratista
+        // who sent the legacy format was reported as "folder contains no workbook" and
+        // their entire workforce left the report. One extension literal, one lost company.
+        const zip = buildZip("formats", {
+            "Empresa A/lista.xls": payload(),
+            "Empresa B/lista.XLS": payload(),
+            "Empresa C/lista.xlsm": payload(),
+            "Empresa D/lista.xlsx": payload(),
+            "Empresa E/lista.xlsb": payload(),   // readable by SheetJS, deliberately not accepted yet
+        });
+        const dest = scratch("formats-dest");
+        const issues = new IssueList();
+        const summary = extractZip(zip, dest, issues);
+
+        assert.equal(summary.skipped.nonXlsx, 1, ".xlsb is the only one skipped");
+        assert.deepEqual(summary.nonXlsxNames, ["Empresa E/lista.xlsb"]);
+        assert.deepEqual(listTree(dest).filter(n => !n.endsWith("/")).sort(), [
+            "Empresa A/lista.xls",
+            "Empresa B/lista.XLS",
+            "Empresa C/lista.xlsm",
+            "Empresa D/lista.xlsx",
+        ]);
+        assert.equal(issues.bySeverity(SEVERITY.FAILED).length, 0);
+    });
+
+    test("a lock file beside a legacy workbook does not make the folder ambiguous", () => {
+        // ~$ is checked before the extension, so "~$lista.xls" is a lock file and the
+        // folder still holds exactly one workbook rather than two.
+        const zip = buildZip("locked-xls", {
+            "Empresa A/lista.xls": payload(),
+            "Empresa A/~$lista.xls": payload(),
+        });
+        const dest = scratch("locked-xls-dest");
+        const issues = new IssueList();
+        const summary = extractZip(zip, dest, issues);
+
+        assert.equal(summary.skipped.lockfile, 1);
+        assert.deepEqual(listTree(dest).filter(n => !n.endsWith("/")), ["Empresa A/lista.xls"]);
     });
 
     test("zip-slip: ../ entry raises FAILED ZIP_TRAVERSAL, aborts, writes nothing (BUG-34)", async () => {

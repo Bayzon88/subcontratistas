@@ -97,7 +97,8 @@ comando con el mismo --period (mismo periodo -> mismo nombre de archivo).
 
 Opciones
   -i, --input <ruta>        el .zip subido, o una carpeta ya extraida: una carpeta
-                            por subcontratista, un .xlsx dentro. Obligatorio.
+                            por subcontratista, un libro dentro (.xlsx, .xlsm o .xls).
+                            Obligatorio.
   -p, --period <YYYY-MM>    mes reportado. OBLIGATORIO. Sin este argumento el
                             programa sugiere el mes anterior y termina con codigo 2:
                             un valor por defecto tomado del reloj es exactamente
@@ -292,7 +293,7 @@ function parseCliArgs(argv, today) {
     if (values.input === undefined || String(values.input).trim() === "") {
         throw new UsageError(
             "falta --input: el .zip subido o una carpeta ya extraida (una carpeta por " +
-            "subcontratista, un .xlsx dentro).",
+            "subcontratista, un libro .xlsx/.xlsm/.xls dentro).",
             { codigo: "INPUT_MISSING" });
     }
     const inputPath = path.resolve(String(values.input).trim());

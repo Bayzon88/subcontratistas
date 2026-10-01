@@ -69,7 +69,14 @@ function corpusFolder() {
     for (const name of MANIFEST.workbooks) {
         const folder = path.join(root, name.toUpperCase().replace(/-/g, " "));
         fs.mkdirSync(folder, { recursive: true });
-        fs.copyFileSync(path.join(FIXTURES, `${name}.xlsx`), path.join(folder, "lista.xlsx"));
+        // Copy under the fixture's OWN extension. legacy-xls is a real BIFF8 container, and
+        // renaming it to .xlsx would hide the very thing it exists to prove - SheetJS sniffs
+        // the bytes, so the lie would still parse and the regression would go uncovered.
+        const declared = JSON.parse(
+            fs.readFileSync(path.join(FIXTURES, `${name}.expected.json`), "utf8"),
+        ).fixture;
+        const ext = path.extname(declared) || ".xlsx";
+        fs.copyFileSync(path.join(FIXTURES, declared), path.join(folder, `lista${ext}`));
     }
     return root;
 }
@@ -209,11 +216,17 @@ test("the fixture corpus runs end to end and produces every artifact", async () 
     assert.ok(fs.existsSync(r.outputs.runLog), "run.json se escribe");
     assert.ok(fs.existsSync(r.outputs.erroresCsv), "el CSV de Errores se escribe (03 §8.1)");
 
-    // The two pathological fixtures are FAILED and named; the other fifteen are read.
+    // The two pathological fixtures are FAILED and named; every other fixture is read -
+    // including LEGACY XLS, which arrives as a real BIFF8 container and must be
+    // indistinguishable from here on. Counts are derived from the manifest rather than
+    // frozen, so adding a fixture does not need this assertion edited.
+    const expectedSubs = MANIFEST.workbooks.length;
     assert.deepEqual(r.stats.subcontratistas.nombres, ["DUPLICATE HEADER", "NO CUADRO SHEET"]);
     assert.equal(r.stats.subcontratistas.fallidos, 2);
-    assert.equal(r.stats.subcontratistas.leidos, 15);
-    assert.equal(r.stats.subcontratistas.esperados, 17);
+    assert.equal(r.stats.subcontratistas.leidos, expectedSubs - 2);
+    assert.equal(r.stats.subcontratistas.esperados, expectedSubs);
+    assert.ok(MANIFEST.workbooks.includes("legacy-xls"),
+        "the legacy .xls fixture must stay in the corpus - it is the regression guard");
 
     // Conservation over the corpus, whatever the corpus happens to contain.
     const f = r.stats.filas;

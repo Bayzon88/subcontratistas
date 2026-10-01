@@ -39,6 +39,26 @@ module.exports = {
     /** The sheet the worker table lives on, matched case/accent-insensitively. */
     SHEET_NAME: "Cuadro",
 
+    /**
+     * Workbook extensions accepted from a subcontratista, lower-case, dot included.
+     *
+     * This is the ONLY place the set is defined. It used to be the single literal
+     * ".xlsx" inside pipeline/zip.js, which meant a subcontratista who sent a legacy
+     * .xls had their whole workforce reported as "folder contains no workbook" - the
+     * silent-loss failure mode this pipeline exists to prevent, wearing a loud error.
+     *
+     * SheetJS reads every one of these natively by sniffing the container, so nothing
+     * here needs a new dependency and nothing downstream needs to know which it got:
+     *   .xlsx/.xlsm  ZIP + OOXML        .xls  OLE2/BIFF8 and the older BIFF5
+     * Verified: biff8, biff5, and an HTML table saved as .xls all read correctly
+     * through pipeline/workbook.js, including the RUC anchor and the 1904 date flag.
+     *
+     * Adding .xlsb is a one-line change here; it is left out only because nothing has
+     * sent one. Order is irrelevant - the format is detected from content, not name.
+     */
+    WORKBOOK_EXTENSIONS: Object.freeze([".xlsx", ".xlsm", ".xls"]),
+
+
     /** Anchor search window. A title cell containing the word "RUC" must not win,
      *  so the search is bounded and gated on ANCHOR_MIN_HEADERS.
      *  (05 §3 Phase 1 task 3; 03-expected-output.md §1.2 step 6 / §1.4 rule 5.) */

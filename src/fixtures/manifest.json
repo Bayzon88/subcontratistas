@@ -17,7 +17,8 @@
     "dni-leading-zero",
     "codes-out-of-domain",
     "no-hpt-column",
-    "text-columns-dirty"
+    "text-columns-dirty",
+    "legacy-xls"
   ],
   "containers": [
     {

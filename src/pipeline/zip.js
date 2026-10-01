@@ -60,8 +60,11 @@ const ENTRY_KIND = Object.freeze({
     MACOSX: "macosx",        // __MACOSX/ anywhere in the path, or a ._ resource fork
     LOCKFILE: "lockfile",    // ~$... - Excel's lock file. Skipped BY NAME, never opened
     DIRECTORY: "directory",
-    XLSX: "xlsx",
-    OTHER: "other",          // .xls, .pdf, .csv, images, .DS_Store, ...
+    // Any accepted workbook container - .xlsx, .xlsm or legacy .xls. Deliberately NOT
+    // named XLSX: the set is config.WORKBOOK_EXTENSIONS and SheetJS detects the real
+    // format from the bytes, so the name must not imply one container.
+    WORKBOOK: "workbook",
+    OTHER: "other",          // .pdf, .csv, .doc, images, .DS_Store, ...
 });
 
 /** Default caps. config.js is the only source; options override them in tests. */
@@ -90,10 +93,42 @@ function toPosix(name) {
     return String(name === null || name === undefined ? "" : name).replace(/\\/g, "/");
 }
 
-/** "a/b/c.xlsx" -> "c.xlsx"; "a/b/" -> "b". */
+/** "a/b/c.xls" -> "c.xls"; "a/b/" -> "b". */
 function baseOf(posixName) {
     const trimmed = posixName.replace(/\/+$/, "");
     return trimmed.slice(trimmed.lastIndexOf("/") + 1);
+}
+
+/** Lower-cased accepted extensions, and a human list for the messages. */
+const ACCEPTED_EXTENSIONS = Object.freeze(
+    config.WORKBOOK_EXTENSIONS.map(e => String(e).toLowerCase()),
+);
+const ACCEPTED_LIST = ACCEPTED_EXTENSIONS.join(", ");
+
+/**
+ * The accepted extension this basename carries, or null.
+ *
+ * Longest match first, so ".xlsx" is never reported as ".xls" - the two share a
+ * suffix boundary and a plain endsWith test would otherwise depend on the order of
+ * the config array. Name-only: the real container is sniffed later by SheetJS, which
+ * is what lets an HTML table saved as .xls still parse.
+ */
+function workbookExtensionOf(base) {
+    const lower = String(base === null || base === undefined ? "" : base).toLowerCase();
+    let best = null;
+    for (const ext of ACCEPTED_EXTENSIONS) {
+        // A bare ".xls" with no stem is a dotfile, not a workbook.
+        if (lower.length > ext.length && lower.endsWith(ext)) {
+            if (best === null || ext.length > best.length) best = ext;
+        }
+    }
+    return best;
+}
+
+/** "lista.xls" -> "lista". Used only where a file stem must stand in for a folder name. */
+function stripWorkbookExtension(base) {
+    const ext = workbookExtensionOf(base);
+    return ext ? String(base).slice(0, -ext.length) : String(base);
 }
 
 /**
@@ -142,8 +177,8 @@ function classifyEntry(rawName, isDirectory) {
     if (isDir) {
         return { kind: ENTRY_KIND.DIRECTORY, name, base, reason: null };
     }
-    if (base.toLowerCase().endsWith(".xlsx")) {
-        return { kind: ENTRY_KIND.XLSX, name, base, reason: null };
+    if (workbookExtensionOf(base)) {
+        return { kind: ENTRY_KIND.WORKBOOK, name, base, reason: null };
     }
     return { kind: ENTRY_KIND.OTHER, name, base, reason: null };
 }
@@ -234,7 +269,7 @@ function extractZip(zipPath, destDir, issues, options = {}) {
 
         // Caps are measured over what we will actually write. A bomb hidden in an entry
         // we skip by name is never inflated, so it cannot cost us anything.
-        if (c.kind === ENTRY_KIND.XLSX) {
+        if (c.kind === ENTRY_KIND.WORKBOOK) {
             const size = Number(entry.header.size) || 0;
             const packed = Number(entry.header.compressedSize) || 0;
             plannedBytes += size;
@@ -304,14 +339,14 @@ function extractZip(zipPath, destDir, issues, options = {}) {
                 summary.nonXlsxNames.push(item.name);
                 issues.info({
                     code: CODE.SKIPPED_NON_XLSX,
-                    message: `skipped non-.xlsx entry "${item.name}"`,
+                    message: `skipped "${item.name}": not a workbook (${ACCEPTED_LIST})`,
                     subcontratista: subcontratistaOf(item.name),
                     archivo: item.base,
                     detalle: { entryName: item.name },
                 });
                 break;
 
-            case ENTRY_KIND.XLSX: {
+            case ENTRY_KIND.WORKBOOK: {
                 fs.mkdirSync(path.dirname(item.target), { recursive: true });
                 const data = item.entry.getData();
                 summary.bytes += data.length;
@@ -378,7 +413,7 @@ function listDir(dirAbs) {
         else if (isDir) out.dirs.push(item);
         else if (!isFile) out.others.push(item);           // symlink, socket, fifo
         else if (c.kind === ENTRY_KIND.LOCKFILE) out.lockfiles.push(item);
-        else if (c.kind === ENTRY_KIND.XLSX) out.files.push(item);
+        else if (c.kind === ENTRY_KIND.WORKBOOK) out.files.push(item);
         else out.others.push(item);
     }
     return out;
@@ -414,7 +449,7 @@ function resolveRoot(rootAbs) {
     return { root: current, wrapperDepth: depth };
 }
 
-/** Collect every .xlsx under one subcontratista folder, ordered, reporting what it skips. */
+/** Collect every workbook under one subcontratista folder, ordered, reporting what it skips. */
 function collectWorkbooks(folderAbs, subcontratista, issues, tally, depth = 0) {
     const level = listDir(folderAbs);
     const found = [];
@@ -435,7 +470,7 @@ function collectWorkbooks(folderAbs, subcontratista, issues, tally, depth = 0) {
         tally.nonXlsx++;
         issues.info({
             code: CODE.SKIPPED_NON_XLSX,
-            message: `skipped non-.xlsx file "${other.name}"`,
+            message: `skipped "${other.name}": not a workbook (${ACCEPTED_LIST})`,
             subcontratista,
             archivo: other.name,
         });
@@ -491,7 +526,7 @@ function walkInput(dirPath, issues) {
         tally.nonXlsx++;
         issues.info({
             code: CODE.SKIPPED_NON_XLSX,
-            message: `skipped non-.xlsx file "${other.name}"`,
+            message: `skipped "${other.name}": not a workbook (${ACCEPTED_LIST})`,
             archivo: other.name,
         });
     }
@@ -511,7 +546,7 @@ function walkInput(dirPath, issues) {
             foldersFailed++;
             issues.failed({
                 code: CODE.FOLDER_NO_XLSX,
-                message: `folder "${subcontratista}" contains no .xlsx - subcontratista skipped, this is NOT "no workers this month"`,
+                message: `folder "${subcontratista}" contains no workbook (${ACCEPTED_LIST}) - subcontratista skipped, this is NOT "no workers this month"`,
                 subcontratista,
                 detalle: { folder: folder.full },
             });
@@ -523,7 +558,7 @@ function walkInput(dirPath, issues) {
             foldersFailed++;
             issues.failed({
                 code: CODE.FOLDER_MULTIPLE_XLSX,
-                message: `folder "${subcontratista}" contains ${workbooks.length} .xlsx files (${names.join(", ")}) - cannot choose, subcontratista skipped`,
+                message: `folder "${subcontratista}" contains ${workbooks.length} workbooks (${names.join(", ")}) - cannot choose, subcontratista skipped`,
                 subcontratista,
                 detalle: { folder: folder.full, archivos: names },
             });
@@ -538,13 +573,13 @@ function walkInput(dirPath, issues) {
         });
     }
 
-    // Loose .xlsx sitting directly in the root: a flat drop with no folder per company.
+    // A loose workbook sitting directly in the root: a flat drop with no folder per company.
     // The file's stem is then the only identity available, and it is used rather than
     // dropping the file - a workbook nobody mentions is the failure this module exists
     // to prevent. Counted separately in the summary so the shape is visible.
     for (const file of level.files) {
         records.push({
-            subcontratista: file.base.replace(/\.xlsx$/i, ""),
+            subcontratista: stripWorkbookExtension(file.base),
             folder: root,
             file: file.full,
             archivo: file.base,
@@ -617,6 +652,9 @@ module.exports = {
     resolveWithin,
     ZipRefusedError,
     ENTRY_KIND,
+    ACCEPTED_EXTENSIONS,
+    workbookExtensionOf,
+    stripWorkbookExtension,
     DEFAULT_LIMITS,
     RATIO_MIN_BYTES,
 };
